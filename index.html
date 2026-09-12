@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Grid Hunter — Bybit</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:760px;margin:auto;padding:18px 14px 40px}
+h1{font-size:27px;margin:5px 0}.sub{color:#94a3b8;font-size:14px;margin-bottom:18px}
+.card{background:#141b2f;border:1px solid #26304a;border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;color:#94a3b8;font-size:12px;margin-bottom:5px}
+input{width:100%;padding:11px;border-radius:11px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px}
+button{width:100%;border:0;border-radius:13px;padding:13px;background:#2563eb;color:white;font-size:16px;font-weight:700;margin-top:12px}
+button:disabled{opacity:.5}.status{font-size:13px;color:#94a3b8;margin-top:10px}
+.metric{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #26304a}.metric:last-child{border:0}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 5px;text-align:left;border-bottom:1px solid #26304a}th{color:#94a3b8}
+.badge{padding:4px 7px;border-radius:8px;background:#1e293b}.good{background:#14532d}.warn{background:#713f12}.bad{background:#7f1d1d}
+.small{color:#94a3b8;font-size:12px;line-height:1.45}.vtho{border:1px solid #2563eb}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎯 Grid Hunter</h1>
+<div class="sub">Bybit Spot • мобильный сканер для Grid</div>
+
+<div class="card">
+<div class="grid">
+<div class="field"><label>Депозит, USDT</label><input id="deposit" type="number" value="21" step="0.1"></div>
+<div class="field"><label>Сеток</label><input id="grids" type="number" value="12"></div>
+<div class="field"><label>Мин. цена</label><input id="min" type="number" value="0.000001" step="0.000001"></div>
+<div class="field"><label>Макс. цена</label><input id="max" type="number" value="0.001" step="0.000001"></div>
+<div class="field"><label>Трейлинг</label><input id="trail" type="number" value="0.000815" step="0.000001"></div>
+<div class="field"><label>Стоп-лосс</label><input id="stop" type="number" value="0.0005" step="0.000001"></div>
+</div>
+<button id="scan">🔎 Сканировать Bybit</button>
+<div id="status" class="status">Данные берутся из публичного API Bybit. Ключи не нужны.</div>
+</div>
+
+<div class="card vtho">
+<h3 style="margin-top:0">⭐ Эталон VTHO/USDT</h3>
+<div id="vtho">Нажми «Сканировать»</div>
+</div>
+
+<div class="card">
+<h3 style="margin-top:0">🏆 Лучшие кандидаты</h3>
+<div style="overflow:auto"><table><thead><tr><th>#</th><th>Монета</th><th>Цена</th><th>24ч</th><th>Score</th><th>Grid</th></tr></thead>
+<tbody id="rows"><tr><td colspan="6" class="small">Результаты появятся после сканирования.</td></tr></tbody></table></div>
+</div>
+
+<div class="card small">
+<b>Что делает оценка:</b> учитывает изменение цены за 24 часа, объём, величину колебаний и близость текущей цены к выбранной зоне. Это исследовательский рейтинг, а не сигнал на покупку.
+</div>
+</div>
+
+<script>
+const api='https://api.bybit.com/v5/market/tickers?category=spot';
+const $=id=>document.getElementById(id);
+const fmt=(x,d=8)=>Number(x).toLocaleString('en-US',{maximumFractionDigits:d});
+
+function score(t){
+  const p=+t.lastPrice, ch=Math.abs(+t.price24hPcnt||0), vol=+t.turnover24h||0;
+  const min=+$('min').value,max=+$('max').value;
+  if(!p||p<min||p>max)return null;
+  // Activity proxy: volume + price movement, capped.
+  const activity=Math.min(45, Math.log10(Math.max(vol,1))*5);
+  const movement=Math.min(35, ch*100*2.5);
+  const stability=20-Math.min(20,ch*100*1.2);
+  const s=Math.max(0,Math.min(100,activity+movement+stability));
+  const label=s>=70?'A':s>=55?'B':'C';
+  return {s,label};
+}
+async function getKline(sym){
+  const u=`https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=60&limit=48`;
+  const r=await fetch(u); const j=await r.json();
+  if(j.retCode!==0)return [];
+  return (j.result.list||[]).map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
+}
+function gridRange(price){
+  const widths=[.06,.08,.10,.12,.15,.18,.22];
+  let best=null;
+  for(const w of widths){
+    const lo=price*(1-w), hi=price*(1+w);
+    const step=(hi-lo)/(+$('grids').value);
+    const distance=Math.min(price-lo,hi-price);
+    const s=100-Math.abs(w-.12)*180;
+    const candidate={lo,hi,step,s,distance};
+    if(!best||candidate.s>best.s)best=candidate;
+  }
+  return best;
+}
+async function scan(){
+  $('scan').disabled=true;$('status').textContent='Сканирую Bybit…';
+  try{
+    const r=await fetch(api); const j=await r.json();
+    if(j.retCode!==0)throw Error(j.retMsg);
+    const arr=(j.result.list||[]).filter(t=>t.symbol.endsWith('USDT'));
+    const candidates=[];
+    for(const t of arr){
+      const sc=score(t); if(!sc)continue;
+      candidates.push({t,sc});
+    }
+    candidates.sort((a,b)=>b.sc.s-a.sc.s);
+    const top=candidates.slice(0,15);
+
+    const v=arr.find(x=>x.symbol==='VTHOUSDT');
+    if(v){
+      const sc=score(v), g=gridRange(+v.lastPrice);
+      $('vtho').innerHTML=`<div class="metric"><span>Цена</span><b>${fmt(v.lastPrice,9)}</b></div>
+      <div class="metric"><span>24ч</span><b>${(+v.price24hPcnt*100).toFixed(2)}%</b></div>
+      <div class="metric"><span>Оборот 24ч</span><b>${fmt(+v.turnover24h,0)}</b></div>
+      <div class="metric"><span>Расчётный диапазон</span><b>${fmt(g.lo,9)} — ${fmt(g.hi,9)}</b></div>
+      <div class="metric"><span>Ориентир</span><b>${sc?sc.s.toFixed(1):'—'} / 100</b></div>`;
+    } else $('vtho').textContent='VTHO/USDT не найден среди доступных spot-тикеров.';
+
+    $('rows').innerHTML=top.map((x,i)=>{
+      const t=x.t,g=gridRange(+t.lastPrice);
+      const cls=x.sc.label==='A'?'good':x.sc.label==='B'?'warn':'bad';
+      return `<tr><td>${i+1}</td><td><b>${t.symbol.replace('USDT','')}</b></td><td>${fmt(t.lastPrice,9)}</td>
+      <td>${(+t.price24hPcnt*100).toFixed(2)}%</td><td><span class="badge ${cls}">${x.sc.s.toFixed(0)} ${x.sc.label}</span></td>
+      <td>${fmt(g.lo,8)}–${fmt(g.hi,8)}</td></tr>`;
+    }).join('');
+    $('status').textContent=`Готово: найдено ${candidates.length} монет в заданном ценовом диапазоне.`;
+  }catch(e){$('status').textContent='Ошибка: '+e.message+'. Если iPhone блокирует запрос, открой страницу через Safari после размещения на HTTPS-сайте.';}
+  finally{$('scan').disabled=false;}
+}
+$('scan').onclick=scan;
+</script>
+</body>
+</html>
