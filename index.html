@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d19">
-<title>Grid Hunter AI v0.8</title>
+<title>Grid Hunter AI v1.1</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
@@ -41,7 +41,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 </style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.0 FIXED • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.1 REGION FIXED • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -57,12 +57,12 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div id="apiBox" style="display:none">
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div>
-<div class="field" style="margin-top:7px"><label>Регион API</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.nl">Нидерланды</option><option value="https://api.bybit.eu">EEA / EU</option><option value="https://api.bybit.com">Global</option></select></div>
+<div class="field" style="margin-top:7px"><label>Регион API — Нидерланды больше не ставятся автоматически</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.eu" selected>EEA / EU — основной вариант</option><option value="https://api.bybit.com">Global</option><option value="https://api.bybit.nl">Нидерланды — только если аккаунт NL</option></select></div>
 <div class="field" style="margin-top:7px"><label>Grid ID (если известен)</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="например 123456789"></div>
-<button id="readBybit">📡 Считать мой Spot Grid</button>
-<div class="note" style="margin-top:7px">Только запросы чтения. V0.9 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
+<button id="readBybit">📡 Считать мой Spot Grid</button><div class="small" style="margin-top:6px">По документации Bybit для EEA используется api.bybit.eu; api.bybit.nl — только для аккаунтов Нидерландов.</div>
+<div class="note" style="margin-top:7px">Только запросы чтения. V1.1 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
 </div>
-<div id="botReadout" class="note" style="margin-top:8px">Можно работать вручную. В режиме API программа сначала проверяет, что ключ действительно Read-Only.</div>
+<div id="botReadout" class="note" style="margin-top:8px">Можно работать вручную. API: сначала проверка ключа, затем чтение Spot Grid. Ключи не отправляются в чат.</div>
 </div>
 
 <div class="card">
@@ -371,9 +371,10 @@ function pickGridIdFromUrl(){
 }
 async function readCurrentBot(){
  $('readBybit').disabled=true;
- $('botReadout').textContent='Проверяю Read-Only ключ…';
+ $('botReadout').textContent='Проверяю Read-Only ключ через '+$('apiBase').value+'…';
  try{
   const info=await bybitPrivate('/v5/user/query-api',{},'GET');
+  if(info?.retCode===10005)throw Error('Bybit 10005: доступ к API-ключу запрещён. Проверь регион API и права ключа.');
   if(info.result?.readOnly!==1)throw Error('Этот ключ НЕ Read-Only. Создай отдельный ключ только для чтения.');
   const spotPerm=info.result?.permissions?.Spot;
   if(Array.isArray(spotPerm) && !spotPerm.includes('SpotTrade')){
@@ -386,6 +387,9 @@ async function readCurrentBot(){
   }
 
   const detail=await readSpotGridDetail(id);
+  if(detail?.retCode===10005){
+    throw Error('Bybit 10005: Permission denied. Проверь Read-Only ключ, наличие SpotTrade и соответствие региона API аккаунту.');
+  }
   const raw=detail?.result ?? detail;
   const sym=pickDeep(raw,['symbol','pair','symbolName']);
   const invest=pickDeep(raw,['investment','totalInvestment','totalInvestmentAmount','quoteInvestment','totalInvest','totalInvestment']);
