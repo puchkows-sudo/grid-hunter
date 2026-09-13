@@ -41,7 +41,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 </style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.9 • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.0 FIXED • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -54,7 +54,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div class="field"><label>Верхняя граница</label><input id="botMax" type="number" step="any" placeholder="авто"></div>
 </div>
 <button id="connect">🔐 Подключить Bybit (только чтение)</button>
-<div id="apiBox" style="display:none;margin-top:8px">
+<div id="apiBox" style="display:none">
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>Регион API</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.nl">Нидерланды</option><option value="https://api.bybit.eu">EEA / EU</option><option value="https://api.bybit.com">Global</option></select></div>
@@ -411,6 +411,22 @@ async function readCurrentBot(){
 }
 function syncBotFields(){ $('deposit').value=$('botDeposit').value||21; $('grids').value=$('botGrids').value||12; if($('botMin').value)$('min').value=$('botMin').value; if($('botMax').value)$('max').value=$('botMax').value; }
 $('gridId').value=pickGridIdFromUrl();
+
+function connectReadOnly(){
+  const box = document.getElementById('apiBox');
+  const btn = document.getElementById('connect');
+  if(!box) return;
+  const isHidden = getComputedStyle(box).display === 'none';
+  box.style.display = isHidden ? 'block' : 'none';
+  if(btn) btn.textContent = isHidden
+    ? '🔓 Данные API (только чтение)'
+    : '🔐 Подключить Bybit (только чтение)';
+  if(isHidden){
+    const key = document.getElementById('apiKey');
+    if(key) setTimeout(() => key.focus(), 50);
+  }
+}
+
 $('connect').onclick=connectReadOnly;$('readBybit').onclick=readCurrentBot;$('botDeposit').oninput=syncBotFields;$('botGrids').oninput=syncBotFields;$('botMin').oninput=syncBotFields;$('botMax').oninput=syncBotFields;
 
 async function scan(){
