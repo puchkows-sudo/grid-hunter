@@ -41,7 +41,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 </style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.8 • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.9 • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -58,8 +58,9 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>Регион API</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.nl">Нидерланды</option><option value="https://api.bybit.eu">EEA / EU</option><option value="https://api.bybit.com">Global</option></select></div>
-<button id="readBybit">📡 Считать мой бот</button>
-<div class="note" style="margin-top:7px">Только GET/POST-запросы чтения. V0.8 не содержит функций создания, изменения или закрытия ордеров/ботов. Ключи не отправляются нам и не сохраняются в облаке.</div>
+<div class="field" style="margin-top:7px"><label>Grid ID (если известен)</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="например 123456789"></div>
+<button id="readBybit">📡 Считать мой Spot Grid</button>
+<div class="note" style="margin-top:7px">Только запросы чтения. V0.9 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
 </div>
 <div id="botReadout" class="note" style="margin-top:8px">Можно работать вручную. В режиме API программа сначала проверяет, что ключ действительно Read-Only.</div>
 </div>
@@ -357,67 +358,59 @@ function normalizePair(sym){
  if(sym.endsWith('USDC'))return sym.slice(0,-4)+'/USDC';
  return sym;
 }
-async function findRunningSpotGrid(){
- // The Spot Grid detail endpoint requires grid_id. First discover IDs from the Spot Grid list endpoint.
- const listPaths=['/v5/grid/query-grid-list','/v5/grid/query-grid-bot-list'];
- const errors=[];
- for(const path of listPaths){
-  try{
-   const j=await bybitPrivate(path,{},'POST');
-   const arrays=findArrays(j);
-   const candidates=[];
-   for(const a of arrays){for(const item of a.value){
-    if(item&&typeof item==='object'){
-     const id=item.gridId??item.grid_id??item.id;
-     if(id!==undefined&&id!==null)candidates.push(item);
-    }
-   }}
-   if(!candidates.length)continue;
-   const active=candidates.find(x=>/RUNNING|NEW|ACTIVE|OPEN|START/i.test(String(x.status??x.gridStatus??x.state??'')))||candidates[0];
-   const id=active.gridId??active.grid_id??active.id;
-   if(id===undefined)continue;
-   const detail=await bybitPrivate('/v5/grid/query-grid-detail',{gridId:id},'POST');
-   return {listPath:path,list:j,summary:active,detail};
-  }catch(e){errors.push(path+': '+e.message)}
- }
- const e=new Error(errors.length?errors.join(' • '):'Bybit не вернул список Spot Grid');
- e.discovery=true;e.details=errors;throw e;
+async function readSpotGridDetail(gridId){
+ const id=String(gridId||'').trim();
+ if(!/^\d+$/.test(id)) throw Error('Нужен числовой Grid ID. Вставь ID своего Spot Grid в поле выше.');
+ return await bybitPrivate('/v5/grid/query-grid-detail',{gridId:id},'POST');
 }
-async function connectReadOnly(){
- $('apiBox').style.display=$('apiBox').style.display==='none'?'block':'none';
+function pickGridIdFromUrl(){
+ try{
+  const u=new URL(location.href);
+  return u.searchParams.get('grid_id')||u.searchParams.get('gridId')||'';
+ }catch(e){return ''}
 }
 async function readCurrentBot(){
- $('readBybit').disabled=true;$('botReadout').textContent='Проверяю Read-Only ключ и ищу активный Spot Grid…';
+ $('readBybit').disabled=true;
+ $('botReadout').textContent='Проверяю Read-Only ключ…';
  try{
   const info=await bybitPrivate('/v5/user/query-api',{},'GET');
   if(info.result?.readOnly!==1)throw Error('Этот ключ НЕ Read-Only. Создай отдельный ключ только для чтения.');
   const spotPerm=info.result?.permissions?.Spot;
   if(Array.isArray(spotPerm) && !spotPerm.includes('SpotTrade')){
-   throw Error('У API-ключа нет SpotTrade в разрешениях. Нужен только Read-Only доступ к Spot.');
+   throw Error('У API-ключа нет SpotTrade в разрешениях. Нужен Read-Only доступ к Spot.');
   }
-  const found=await findRunningSpotGrid();
-  const raw=found.detail?.result ?? found.detail;
+
+  let id=$('gridId').value.trim()||pickGridIdFromUrl();
+  if(!id){
+   throw Error('Bybit V5 не предоставляет документированный список активных Spot Grid через отдельный list-endpoint. Для уже созданного бота нужен его Grid ID. Вставь его в поле «Grid ID».');
+  }
+
+  const detail=await readSpotGridDetail(id);
+  const raw=detail?.result ?? detail;
   const sym=pickDeep(raw,['symbol','pair','symbolName']);
-  const invest=pickDeep(raw,['investment','totalInvestment','totalInvestmentAmount','quoteInvestment','totalInvest']);
+  const invest=pickDeep(raw,['investment','totalInvestment','totalInvestmentAmount','quoteInvestment','totalInvest','totalInvestment']);
   const grids=pickDeep(raw,['gridNum','gridNumber','numOfGrid','gridCount','cellNumber']);
-  const lo=pickDeep(raw,['lowerPrice','lowerLimit','minPrice','priceLower','minPrice']);
-  const hi=pickDeep(raw,['upperPrice','upperLimit','maxPrice','priceUpper','maxPrice']);
+  const lo=pickDeep(raw,['lowerPrice','lowerLimit','minPrice','priceLower']);
+  const hi=pickDeep(raw,['upperPrice','upperLimit','maxPrice','priceUpper']);
   const status=pickDeep(raw,['status','gridStatus','state']);
+  const profit=pickDeep(raw,['totalProfit','gridProfit','profit']);
+  const apr=pickDeep(raw,['apr','APR']);
   if(sym)$('botPair').value=normalizePair(sym);
   if(invest&&isFinite(+invest))$('botDeposit').value=invest;
   if(grids&&isFinite(+grids))$('botGrids').value=grids;
   if(lo)$('botMin').value=lo;
   if(hi)$('botMax').value=hi;
   syncBotFields();
-  $('botStatus').value='API подключён • Spot Grid найден';
-  $('botReadout').innerHTML=`<b>✅ Spot Grid найден.</b> ID: <code>${found.summary.gridId??found.summary.grid_id??found.summary.id}</code>${status?` • статус: <b>${status}</b>`:''}.<br><span class="small">Использован только Spot Grid API. Futures endpoint <code>/v5/fgridbot/detail</code> здесь отсутствует.</span>`;
+  $('botStatus').value='API подключён • Spot Grid считан';
+  $('botReadout').innerHTML=`<b>✅ Spot Grid считан.</b> ID: <code>${id}</code>${status?` • статус: <b>${status}</b>`:''}${profit?` • P&L: <b>${profit}</b>`:''}${apr?` • APR: <b>${apr}</b>`:''}.<br><span class="small">Использован только официальный Spot Grid detail endpoint <code>/v5/grid/query-grid-detail</code>.</span>`;
  }catch(e){
   $('botStatus').value='Ошибка подключения';
-  $('botReadout').innerHTML=`<b>❌ Не удалось автоматически считать Spot Grid.</b><br>${e.message}<br><span class="small">Ключ и Secret не отправляй сюда. Если ошибка повторится — пришли только этот экран, без ключей.</span>`;
+  $('botReadout').innerHTML=`<b>❌ ${e.message}</b><br><span class="small">Если Bybit вернул ошибку API — пришли только этот экран, без API Key и Secret.</span>`;
  }
  finally{$('readBybit').disabled=false}
 }
 function syncBotFields(){ $('deposit').value=$('botDeposit').value||21; $('grids').value=$('botGrids').value||12; if($('botMin').value)$('min').value=$('botMin').value; if($('botMax').value)$('max').value=$('botMax').value; }
+$('gridId').value=pickGridIdFromUrl();
 $('connect').onclick=connectReadOnly;$('readBybit').onclick=readCurrentBot;$('botDeposit').oninput=syncBotFields;$('botGrids').oninput=syncBotFields;$('botMin').oninput=syncBotFields;$('botMax').oninput=syncBotFields;
 
 async function scan(){
