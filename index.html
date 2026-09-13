@@ -4,47 +4,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1020">
-<title>Grid Hunter v0.5</title>
+<meta name="theme-color" content="#080d19">
+<title>Grid Hunter AI v0.6</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080d19;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.wrap{max-width:760px;margin:auto;padding:16px 13px 42px}.head{padding:8px 4px 14px}h1{font-size:28px;margin:0}.sub{color:#8fa0ba;font-size:13px;margin-top:5px}
-.card{background:#121a2d;border:1px solid #27334d;border-radius:19px;padding:15px;margin:12px 0;box-shadow:0 8px 25px #0002}
-.hero{border:1px solid #2563eb;background:linear-gradient(145deg,#152446,#11192b)}.eyebrow{font-size:12px;color:#8fa0ba;text-transform:uppercase;letter-spacing:.08em}
-.hero h2{font-size:30px;margin:5px 0}.bigscore{font-size:42px;font-weight:800}.muted{color:#91a0b8}.pill{display:inline-block;padding:5px 9px;border-radius:10px;font-weight:700;font-size:12px;background:#26344e}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
+body{background:#080d19;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{width:100%;max-width:620px;margin:auto;padding:14px 12px 42px}
+.head{padding:6px 3px 10px}.head h1{font-size:27px;margin:0}.sub{color:#8fa0ba;font-size:12px;margin-top:4px}
+.card{background:#121a2d;border:1px solid #27334d;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 8px 25px #0002}
+.hero{border-color:#315ba8;background:linear-gradient(145deg,#152446,#11192b)}
+h2{font-size:27px;margin:4px 0}.eyebrow{font-size:11px;color:#8fa0ba;text-transform:uppercase;letter-spacing:.08em}
+.muted,.small{color:#91a0b8}.small{font-size:11px}.bigscore{font-size:41px;font-weight:850}
+.pill{display:inline-block;padding:4px 8px;border-radius:9px;font-weight:750;font-size:11px;background:#26344e}
 .good{background:#14532d}.warn{background:#713f12}.bad{background:#7f1d1d}
-.metric{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #26304a}.metric:last-child{border:0}
-.bar{height:8px;background:#26304a;border-radius:99px;overflow:hidden;margin-top:5px}.fill{height:100%;background:#60a5fa;border-radius:99px}
-.gridbox{font-size:24px;font-weight:800;margin:5px 0}.note{font-size:12px;line-height:1.45;color:#8fa0ba}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;color:#8fa0ba;font-size:11px;margin-bottom:4px}input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px}
-button{width:100%;border:0;border-radius:13px;padding:13px;background:#2563eb;color:#fff;font-size:16px;font-weight:750;margin-top:11px}button:disabled{opacity:.55}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 5px;border-bottom:1px solid #26304a;text-align:left;white-space:nowrap}th{color:#8fa0ba}
-.rank{font-weight:800}.rowtop{background:#18233b}.small{font-size:12px;color:#8fa0ba}.status{margin-top:9px;font-size:12px;color:#8fa0ba}
+.metric{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #26304a;font-size:13px}
+.metric:last-child{border:0}.metric span:first-child{color:#91a0b8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field label{display:block;color:#8fa0ba;font-size:10px;margin-bottom:4px}
+input{width:100%;min-width:0;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px}
+button{width:100%;border:0;border-radius:12px;padding:13px;background:#2563eb;color:#fff;font-size:15px;font-weight:750;margin-top:10px}
+button:disabled{opacity:.55}.status{margin-top:8px;font-size:11px;color:#8fa0ba}
+.section-title{font-size:16px;font-weight:800;margin:0 0 9px}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:7px}.kpi>div{background:#0c1425;border:1px solid #26344e;border-radius:12px;padding:9px}
+.kpi b{display:block;font-size:16px;margin-top:3px}.kpi span{font-size:10px;color:#8fa0ba}
+.reason{font-size:12px;line-height:1.45;margin:7px 0}.decision{font-weight:850;font-size:16px;margin:5px 0 10px}
+.range{font-size:21px;font-weight:850;margin:4px 0}.note{font-size:11px;line-height:1.45;color:#8fa0ba}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+th,td{padding:7px 3px;border-bottom:1px solid #26304a;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
+@media(max-width:380px){.wrap{padding-left:9px;padding-right:9px}.card{padding:12px}.head h1{font-size:24px}.bigscore{font-size:37px}.range{font-size:18px}table{font-size:10px}}
+
+.news-list{margin-top:8px}.news-item{padding:8px 0;border-bottom:1px solid #26304a}
+.news-item:last-child{border:0}.news-item a{color:#dbeafe;text-decoration:none;font-size:12px;line-height:1.35}
+.news-meta{font-size:10px;color:#7f8da5;margin-top:3px}.news-risk{font-weight:800}
 </style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter</h1><div class="sub">v0.5 • Bybit Spot • поиск монеты для Grid</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.6 • Bybit Spot • осторожный поиск Grid-кандидата</div></div>
 
 <div class="card">
+<div class="section-title">⚙️ Параметры анализа</div>
 <div class="grid">
-<div class="field"><label>Депозит, USDT</label><input id="deposit" type="number" value="21"></div>
-<div class="field"><label>Сеток</label><input id="grids" type="number" value="12"></div>
-<div class="field"><label>Мин. цена</label><input id="min" type="number" value="0.000001"></div>
-<div class="field"><label>Макс. цена</label><input id="max" type="number" value="0.001"></div>
-<div class="field"><label>Трейлинг</label><input id="trail" type="number" value="0.000815" step="0.000001"></div>
-<div class="field"><label>Стоп-лосс</label><input id="stop" type="number" value="0.0005" step="0.000001"></div>
+<div class="field"><label>Депозит, USDT</label><input id="deposit" type="number" value="21" min="1" step="0.1"></div>
+<div class="field"><label>Сеток</label><input id="grids" type="number" value="12" min="4" max="80"></div>
+<div class="field"><label>Мин. цена</label><input id="min" type="number" value="0.000001" step="0.000001"></div>
+<div class="field"><label>Макс. цена</label><input id="max" type="number" value="0.001" step="0.000001"></div>
 </div>
-<button id="scan">🔎 Запустить полный анализ</button><div id="status" class="status">Ключи Bybit не нужны.</div>
+<button id="scan">🔎 Запустить полный AI-анализ</button>
+<div id="status" class="status">Депозит используется как параметр стратегии, а не как эталон конкретной монеты.</div>
 </div>
 
-<div id="best" class="card hero"><div class="muted">Нажми «Запустить полный анализ»</div></div>
-<div id="vtho" class="card"><h3 style="margin:0 0 8px">⭐ Наш эталон VTHO/USDT</h3><div class="muted">—</div></div>
+<div id="best" class="card hero"><div class="muted">Запусти анализ — V6 выберет кандидата без привязки к VTHO.</div></div>
 
-<div class="card"><h3 style="margin:0 0 10px">🏆 Рейтинг кандидатов</h3>
-<div style="overflow:auto"><table><thead><tr><th>#</th><th>Монета</th><th>Цена</th><th>24ч</th><th>Grid</th><th>Score</th></tr></thead><tbody id="rows"></tbody></table></div></div>
-
-<div class="card note"><b>Как читать Score:</b> 0–49 слабый кандидат, 50–69 средний, 70–84 хороший, 85+ очень хороший. Оценка учитывает объём, движение за 24ч, часовую волатильность, активность и риск выхода цены за выбранный диапазон. Это исследовательский рейтинг, не гарантия прибыли.</div>
+<div class="card">
+<div class="section-title">🧠 Что учитывает AI</div>
+<div class="kpi">
+<div><span>Рынок</span><b>Цена • объём • импульс</b></div>
+<div><span>Grid</span><b>Диапазон • шаг • капитал</b></div>
+<div><span>Риск</span><b>Выход • волатильность</b></div>
+<div><span>Внешний фон</span><b>Новости • макро</b></div>
 </div>
+<div class="note" style="margin-top:9px">В этой автономной версии новости и макроданные требуют внешнего источника/API. Без него AI не будет притворяться, что проверил мировые новости: внешний риск отмечается как «не подтверждён».</div>
+</div>
+
+
+<div class="card">
+<div class="section-title">🌍 Новости и макрофон</div>
+<div id="newsSummary" class="note">После сканирования загружу свежие мировые и криптовалютные новости.</div>
+<div id="newsList" class="news-list"></div>
+</div>
+<div class="card"><div class="section-title">🏆 Кандидаты</div>
+<table><thead><tr><th style="width:7%">#</th><th style="width:22%">Монета</th><th style="width:23%">Цена</th><th style="width:15%">24ч</th><th style="width:15%">Grid</th><th style="width:18%">AI</th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+
+<div class="card note">
+<b>Принцип V6:</b> это исследовательский помощник, а не гарантия прибыли. При противоречивых данных рейтинг снижается. Сильный памп сам по себе не считается хорошим сигналом для Grid.
+</div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 const tickURL='https://api.bybit.com/v5/market/tickers?category=spot';
@@ -52,81 +90,209 @@ const klURL=s=>`https://api.bybit.com/v5/market/kline?category=spot&symbol=${s}&
 const num=(x,d=9)=>Number(x).toLocaleString('en-US',{maximumFractionDigits:d});
 const pct=x=>(x*100).toFixed(2)+'%';
 
-function rangeFor(p){
-  const widths=[.06,.08,.10,.12,.15,.18,.22];
-  let best=null;
-  for(const w of widths){
-    const lo=p*(1-w),hi=p*(1+w),step=(hi-lo)/+$('grids').value;
-    // Prefer enough room for movement without making the range excessively wide.
-    const score=100-Math.abs(w-.12)*250;
-    const c={lo,hi,step,w,score};
-    if(!best||c.score>best.score)best=c;
-  }
-  return best;
+function badge(label){
+ const c=label==='A'?'good':label==='B'?'warn':'bad';
+ return `<span class="pill ${c}">${label}</span>`;
+}
+function gridFor(p){
+ const grids=Math.min(80,Math.max(4,+$('grids').value||12));
+ const deposit=Math.max(1,+$('deposit').value||21);
+ const widths=[.07,.09,.11,.13,.16,.20];
+ let best=null;
+ for(const w of widths){
+   const lo=p*(1-w),hi=p*(1+w),step=(hi-lo)/grids;
+   const perGrid=deposit/grids;
+   const turnoverRatio=Math.min(1,perGrid/1.5);
+   let score=92-Math.abs(w-.11)*180;
+   if(perGrid<0.6) score-=18;
+   else if(perGrid<1) score-=8;
+   score+=turnoverRatio*4;
+   const c={lo,hi,step,w,score,perGrid};
+   if(!best||c.score>best.score)best=c;
+ }
+ return best;
 }
 async function candles(sym){
-  try{const r=await fetch(klURL(sym));const j=await r.json();
-    return (j.result?.list||[]).map(x=>({o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
-  }catch(e){return[]}
+ try{
+  const r=await fetch(klURL(sym)); const j=await r.json();
+  return (j.result?.list||[]).map(x=>({o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
+ }catch(e){return []}
 }
 function analyse(t,ks){
-  const p=+t.lastPrice, ch=+t.price24hPcnt||0, vol=+t.turnover24h||0;
-  if(!p||p<+$('min').value||p>+$('max').value)return null;
-  let hourly=0, outside=0;
-  if(ks.length>5){
-    const rets=[]; for(let i=1;i<ks.length;i++) rets.push(Math.abs(ks[i].c/ks[i-1].c-1));
-    hourly=rets.reduce((a,b)=>a+b,0)/rets.length;
-  }
-  const g=rangeFor(p);
-  const rangePct=g.w*100;
-  const activity=Math.min(25,Math.log10(Math.max(vol,1))*2.8);
-  const move=Math.min(20,Math.abs(ch)*100*1.8);
-  const volScore=Math.min(25,hourly*100*7);
-  const sweet=Math.max(0,20-Math.abs(rangePct-12)*1.2);
-  // Penalize extreme 24h moves: useful for Grid, but dangerous if too one-sided.
-  const trendPenalty=Math.max(0,(Math.abs(ch)*100-18)*0.7);
-  let score=Math.max(0,Math.min(100,30+activity+move+volScore+sweet-trendPenalty));
-  const label=score>=85?'A+':score>=70?'A':score>=50?'B':'C';
-  return {p,ch,vol,hourly,g,score,label};
+ const p=+t.lastPrice,ch=+t.price24hPcnt||0,vol=+t.turnover24h||0;
+ if(!p||p<+$('min').value||p>+$('max').value)return null;
+ let hourly=0, rangeVol=0, trend=0;
+ if(ks.length>5){
+  const rets=[]; for(let i=1;i<ks.length;i++) rets.push(Math.abs(ks[i].c/ks[i-1].c-1));
+  hourly=rets.reduce((a,b)=>a+b,0)/rets.length;
+  const highs=ks.map(x=>x.h), lows=ks.map(x=>x.l);
+  const avg=ks.reduce((a,x)=>a+x.c,0)/ks.length;
+  rangeVol=(Math.max(...highs)-Math.min(...lows))/avg;
+  trend=(ks.at(-1).c/ks[0].c)-1;
+ }
+ const g=gridFor(p);
+ const activity=Math.min(22,Math.log10(Math.max(vol,1))*2.5);
+ const move=Math.min(18,Math.abs(ch)*100*1.35);
+ const volScore=Math.min(23,hourly*100*7);
+ const usefulVol=Math.max(0,20-Math.abs(hourly*100-1.4)*7);
+ let score=35+activity+move+volScore+usefulVol;
+ const oneSided=Math.abs(trend);
+ if(oneSided>.20)score-=16;
+ else if(oneSided>.12)score-=8;
+ if(Math.abs(ch)>.30)score-=14;
+ if(g.perGrid<0.6)score-=15; else if(g.perGrid<1)score-=7;
+ score=Math.max(0,Math.min(100,score));
+ const label=score>=85?'A':score>=70?'B':score>=50?'C':'D';
+ let decision=score>=82?'НАБЛЮДАТЬ / ГОТОВИТЬ':score>=70?'ОСТОРОЖНО':score>=55?'НЕ СПЕШИТЬ':'НЕ ВХОДИТЬ';
+ if(Math.abs(ch)>.25||oneSided>.22)decision='НЕ ВХОДИТЬ';
+ return {p,ch,vol,hourly,rangeVol,trend,g,score,label,decision};
 }
-function badge(label){return `<span class="pill ${label[0]==='A'?'good':label==='B'?'warn':'bad'}">${label}</span>`}
+function reasons(a){
+ const r=[];
+ if(a.vol>1000000)r.push('высокая ликвидность');
+ if(a.hourly>=.008&&a.hourly<=.025)r.push('волатильность близка к рабочей для Grid');
+ if(Math.abs(a.ch)>.18)r.push('сильное движение 24ч — риск повышен');
+ if(Math.abs(a.trend)>.18)r.push('выраженная однонаправленность');
+ if(a.g.perGrid<1)r.push('малый капитал на сетку');
+ if(!r.length)r.push('данные смешанные — требуется наблюдение');
+ return r.join(' • ');
+}
 function card(name,a){
- return `<div class="eyebrow">Лучший кандидат сейчас</div><h2>${name}</h2>
- <div><span class="bigscore">${a.score.toFixed(1)}</span> <span class="muted">/ 100</span> ${badge(a.label)}</div>
+ return `<div class="eyebrow">AI-кандидат №1</div><h2>${name}</h2>
+ <div><span class="bigscore">${a.score.toFixed(0)}</span> <span class="muted">/100</span> ${badge(a.label)}</div>
+ <div class="decision">${a.decision}</div>
  <div class="metric"><span>Цена</span><b>${num(a.p,9)}</b></div>
  <div class="metric"><span>Изменение 24ч</span><b>${pct(a.ch)}</b></div>
  <div class="metric"><span>Оборот 24ч</span><b>${num(a.vol,0)} USDT</b></div>
  <div class="metric"><span>Часовая активность</span><b>${(a.hourly*100).toFixed(3)}%</b></div>
- <div style="margin-top:12px"><div class="muted" style="font-size:12px">Рекомендуемый диапазон</div><div class="gridbox">${num(a.g.lo,9)} — ${num(a.g.hi,9)}</div>
- <div class="muted" style="font-size:12px">Шаг ≈ ${num(a.g.step,9)} • ${$('grids').value} сеток</div></div>`;
+ <div style="margin-top:9px"><div class="muted" style="font-size:11px">Рекомендуемый диапазон для ${$('deposit').value} USDT</div>
+ <div class="range">${num(a.g.lo,9)} — ${num(a.g.hi,9)}</div>
+ <div class="small">${Math.min(80,Math.max(4,+$('grids').value||12))} сеток • шаг ≈ ${num(a.g.step,9)} • ≈ ${a.g.perGrid.toFixed(2)} USDT/сетку</div></div>
+ <div class="reason"><b>Почему:</b> ${reasons(a)}</div>
+ <div class="metric"><span>Новости / макро</span><b>LIVE-сводка</b></div>
+ <div class="note">Новостной слой учитывает тип события, силу, горизонт, область влияния и повторное подтверждение. Позитивный заголовок сам по себе не повышает рейтинг.</div>`;
 }
+
+const NEWS_FEEDS=[
+ {name:'CoinDesk',url:'https://www.coindesk.com/arc/outboundfeeds/rss/'},
+ {name:'Cointelegraph',url:'https://cointelegraph.com/rss'},
+ {name:'ChainGPT Crypto',url:'https://app.chaingpt.org/rssfeeds.xml'}
+];
+const NEWS_PROXY=u=>'https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(u);
+
+const EVENT_RULES=[
+ {type:'geopolitics',keys:['war','iran','israel','ukraine','russia','houthi','red sea','sanction','missile','attack','conflict'],sev:5,horizon:'дни'},
+ {type:'rates/inflation',keys:['fed','fomc','interest rate','rate hike','rate cut','inflation','cpi','pce','powell','central bank','ecb','boj','boe'],sev:5,horizon:'дни/недели'},
+ {type:'energy',keys:['oil','brent','wti','energy','gas price','hormuz'],sev:4,horizon:'дни/недели'},
+ {type:'regulation',keys:['sec','regulation','regulator','ban','lawsuit','approval','etf','legislation','clarity act'],sev:4,horizon:'дни/месяцы'},
+ {type:'security',keys:['hack','exploit','bridge attack','stolen','breach','vulnerability','drain'],sev:5,horizon:'часы/дни'},
+ {type:'market',keys:['liquidation','selloff','risk-off','risk on','volatility','outflow','inflow','crash'],sev:4,horizon:'часы/дни'},
+ {type:'project',keys:['upgrade','mainnet','hard fork','unlock','token unlock','listing','delisting','partnership','launch'],sev:3,horizon:'дни/месяцы'}
+];
+
+function classifyNews(title){
+ const s=title.toLowerCase();
+ const hits=EVENT_RULES.filter(r=>r.keys.some(k=>s.includes(k)));
+ if(!hits.length)return {type:'other',severity:1,horizon:'неясно',direction:0,scope:'общий'};
+ hits.sort((a,b)=>b.sev-a.sev);
+ const top=hits[0];
+ let direction=0;
+ const positive=['approval','approved','adoption','partnership','upgrade','launch','inflow','rate cut'];
+ const negative=['war','hack','exploit','sanction','ban','lawsuit','rate hike','inflation','liquidation','selloff','outflow','crash'];
+ if(positive.some(k=>s.includes(k)))direction=1;
+ if(negative.some(k=>s.includes(k)))direction=-1;
+ let scope='общий';
+ const coins=['btc','bitcoin','eth','ethereum','vtho','vechain','sol','solana','bnb','xrp','doge','ada','link','dot'];
+ const mentioned=coins.filter(c=>s.includes(c));
+ if(mentioned.length)scope=mentioned.join(', ').toUpperCase();
+ return {type:top.type,severity:top.sev,horizon:top.horizon,direction,scope};
+}
+
+function sourceTier(source){
+ if(/coindesk|cointelegraph/i.test(source))return 2;
+ if(/reuters|financial times|bbc|bloomberg/i.test(source))return 1;
+ return 3;
+}
+
+async function loadNews(){
+ $('newsSummary').textContent='Загружаю и перекрёстно проверяю свежие новости…';
+ const all=[];
+ for(const f of NEWS_FEEDS){
+  try{
+   const r=await fetch(NEWS_PROXY(f.url)); if(!r.ok)continue;
+   const j=await r.json();
+   (j.items||[]).slice(0,10).forEach(x=>all.push({
+    source:f.name,title:x.title||'',link:x.link||'',date:x.pubDate||''
+   }));
+  }catch(e){}
+ }
+ const map=new Map();
+ for(const x of all){
+  const k=x.title.toLowerCase().replace(/[^a-zа-я0-9 ]/gi,'').slice(0,120);
+  if(!k)continue;
+  const ev=classifyNews(x.title);
+  const item={...x,event:ev,tier:sourceTier(x.source)};
+  if(!map.has(k))map.set(k,item); else {
+   const old=map.get(k);
+   old.confirmed=(old.confirmed||1)+1;
+   if(item.tier<old.tier)old.tier=item.tier;
+  }
+ }
+ const items=[...map.values()].sort((a,b)=>{
+  const ac=(b.confirmed||1)*2+b.event.severity+(3-b.tier);
+  const bc=(a.confirmed||1)*2+a.event.severity+(3-a.tier);
+  return ac-bc;
+ }).slice(0,12);
+
+ if(!items.length){
+  $('newsSummary').innerHTML='⚠️ Новости сейчас недоступны. <b>Новостной риск не используется для повышения рейтинга.</b>';
+  $('newsList').innerHTML='';
+  return {items:[],risk:0,confirmed:false};
+ }
+
+ const severe=items.filter(x=>x.event.severity>=4);
+ const confirmedSevere=severe.filter(x=>(x.confirmed||1)>=2);
+ const risk=Math.min(20,severe.reduce((s,x)=>s+x.event.severity*(x.event.direction<0?1:.35),0));
+ $('newsList').innerHTML=items.map(x=>{
+  const e=x.event;
+  const tone=e.direction<0?'bad':e.direction>0?'good':'warn';
+  const label=e.direction<0?'Негативный риск':e.direction>0?'Потенциальный плюс':'Нейтрально';
+  const conf=(x.confirmed||1)>=2?' • подтверждено несколькими лентами':'';
+  return `<div class="news-item"><a href="${x.link}" target="_blank" rel="noopener">${x.title}</a>
+  <div class="news-meta">${x.source} • ${e.type} • ${e.scope} • ${e.horizon} • <span class="news-risk ${tone}">${label}</span>${conf}</div></div>`;
+ }).join('');
+
+ $('newsSummary').innerHTML=
+ `Событий: <b>${items.length}</b> • существенных: <b>${severe.length}</b> • подтверждённых существенных: <b>${confirmedSevere.length}</b>.
+ <br><span class="small">AI учитывает тип события, серьёзность, горизонт, затронутую область и повторное подтверждение. Неподтверждённый заголовок не должен сам по себе запускать сделку.</span>`;
+ return {items,risk,confirmed:true};
+}
+
 async function scan(){
- $('scan').disabled=true;$('status').textContent='Получаю тикеры и анализирую часовые свечи…';
+ $('scan').disabled=true;$('status').textContent='Сканирую Bybit: тикеры + 72 часовые свечи…';
  try{
-  const r=await fetch(tickURL),j=await r.json(); if(j.retCode!==0)throw Error(j.retMsg);
+  const r=await fetch(tickURL); if(!r.ok)throw Error('Bybit HTTP '+r.status); const j=await r.json(); if(j.retCode!==0)throw Error(j.retMsg||'Bybit API error');
   const arr=(j.result.list||[]).filter(t=>t.symbol.endsWith('USDT'));
   const pool=arr.filter(t=>+t.lastPrice>=+$('min').value&&+t.lastPrice<=+$('max').value)
-                .sort((a,b)=>(+b.turnover24h)-(+a.turnover24h)).slice(0,35);
+                 .sort((a,b)=>(+b.turnover24h)-(+a.turnover24h)).slice(0,35);
   const out=[];
   for(const t of pool){const a=analyse(t,await candles(t.symbol));if(a)out.push({symbol:t.symbol,a});}
   out.sort((x,y)=>y.a.score-x.a.score);
-  const top=out.slice(0,15), best=top[0];
-  if(best)$('best').innerHTML=card(best.symbol.replace('USDT',''),best.a);
-
-  const v=out.find(x=>x.symbol==='VTHOUSDT') || (arr.find(x=>x.symbol==='VTHOUSDT') ? {symbol:'VTHOUSDT',a:analyse(arr.find(x=>x.symbol==='VTHOUSDT'),[])}:null);
-  if(v?.a){
-    const a=v.a;$('vtho').innerHTML=`<h3 style="margin:0 0 8px">⭐ Наш эталон VTHO/USDT</h3>
-    <div class="metric"><span>Score</span><b>${a.score.toFixed(1)} ${badge(a.label)}</b></div>
-    <div class="metric"><span>Цена</span><b>${num(a.p,9)}</b></div>
-    <div class="metric"><span>24ч</span><b>${pct(a.ch)}</b></div>
-    <div class="metric"><span>Диапазон для 12 сеток</span><b>${num(a.g.lo,9)} — ${num(a.g.hi,9)}</b></div>
-    <div class="metric"><span>Наш трейлинг</span><b>${$('trail').value}</b></div>
-    <div class="metric"><span>Наш стоп-лосс</span><b>${$('stop').value}</b></div>`;
+  const news=await loadNews();
+  if(news?.confirmed){
+    const penalty=Math.min(12,Math.round(news.risk*(news.risk>=10?0.65:0.45)));
+    if(penalty>0){
+      out.forEach(x=>x.a.score=Math.max(0,x.a.score-penalty));
+      out.sort((x,y)=>y.a.score-x.a.score);
+    }
   }
+  const top=out.slice(0,12),best=top[0];
+  if(best)$('best').innerHTML=card(best.symbol.replace('USDT',''),best.a);
   $('rows').innerHTML=top.map((x,i)=>{const a=x.a;
    return `<tr class="${i===0?'rowtop':''}"><td class="rank">${i+1}</td><td><b>${x.symbol.replace('USDT','')}</b></td>
-   <td>${num(a.p,9)}</td><td>${pct(a.ch)}</td><td>${num(a.g.lo,8)}–${num(a.g.hi,8)}</td><td><b>${a.score.toFixed(0)}</b> ${badge(a.label)}</td></tr>`}).join('');
-  $('status').textContent=`Готово • подробно проверено ${pool.length} ликвидных кандидатов в твоём ценовом диапазоне.`;
+   <td>${num(a.p,7)}</td><td>${pct(a.ch)}</td><td>${num(a.g.lo,6)}–${num(a.g.hi,6)}</td><td><b>${a.score.toFixed(0)}</b> ${badge(a.label)}</td></tr>`;
+  }).join('');
+  $('status').textContent=`Готово • проверено ${pool.length} ликвидных кандидатов • депозит ${$('deposit').value} USDT.`;
  }catch(e){$('status').textContent='Ошибка: '+e.message}
  finally{$('scan').disabled=false}
 }
