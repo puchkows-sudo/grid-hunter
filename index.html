@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d19">
-<title>Grid Hunter AI v0.6</title>
+<title>Grid Hunter AI v0.7</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
@@ -22,7 +22,7 @@ h2{font-size:27px;margin:4px 0}.eyebrow{font-size:11px;color:#8fa0ba;text-transf
 .metric:last-child{border:0}.metric span:first-child{color:#91a0b8}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .field label{display:block;color:#8fa0ba;font-size:10px;margin-bottom:4px}
-input{width:100%;min-width:0;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px}
+select{width:100%;}input{width:100%;min-width:0;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px}
 button{width:100%;border:0;border-radius:12px;padding:13px;background:#2563eb;color:#fff;font-size:15px;font-weight:750;margin-top:10px}
 button:disabled{opacity:.55}.status{margin-top:8px;font-size:11px;color:#8fa0ba}
 .section-title{font-size:16px;font-weight:800;margin:0 0 9px}
@@ -41,7 +41,28 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 </style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.6 • Bybit Spot • осторожный поиск Grid-кандидата</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v0.7 • Bybit Spot • текущий бот = точка отсчёта</div></div>
+
+<div class="card">
+<div class="section-title">🤖 Текущий бот</div>
+<div class="grid">
+<div class="field"><label>Пара</label><input id="botPair" value="" placeholder="например VTHO/USDT"></div>
+<div class="field"><label>Статус</label><input id="botStatus" value="Ручной ввод" readonly></div>
+<div class="field"><label>Капитал бота, USDT</label><input id="botDeposit" type="number" value="21" min="1" step="0.1"></div>
+<div class="field"><label>Сеток</label><input id="botGrids" type="number" value="12" min="4" max="80"></div>
+<div class="field"><label>Нижняя граница</label><input id="botMin" type="number" step="any" placeholder="авто"></div>
+<div class="field"><label>Верхняя граница</label><input id="botMax" type="number" step="any" placeholder="авто"></div>
+</div>
+<button id="connect">🔐 Подключить Bybit (только чтение)</button>
+<div id="apiBox" style="display:none;margin-top:8px">
+<div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
+<div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div>
+<div class="field" style="margin-top:7px"><label>Регион API</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com">Global</option><option value="https://api.bybit.eu">EEA / EU</option></select></div>
+<button id="readBybit">📡 Считать мой бот</button>
+<div class="note" style="margin-top:7px">Только GET/POST-запросы чтения. V7 не содержит функций создания, изменения или закрытия ордеров/ботов. Ключи не отправляются нам и не сохраняются в облаке.</div>
+</div>
+<div id="botReadout" class="note" style="margin-top:8px">Можно работать вручную. В режиме API программа сначала проверяет, что ключ действительно Read-Only.</div>
+</div>
 
 <div class="card">
 <div class="section-title">⚙️ Параметры анализа</div>
@@ -55,7 +76,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div id="status" class="status">Депозит используется как параметр стратегии, а не как эталон конкретной монеты.</div>
 </div>
 
-<div id="best" class="card hero"><div class="muted">Запусти анализ — V6 выберет кандидата без привязки к VTHO.</div></div>
+<div id="best" class="card hero"><div class="muted">Запусти анализ — V7 сначала оценивает текущий бот, затем ищет реальную замену.</div></div>
 
 <div class="card">
 <div class="section-title">🧠 Что учитывает AI</div>
@@ -79,7 +100,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <tbody id="rows"></tbody></table></div>
 
 <div class="card note">
-<b>Принцип V6:</b> это исследовательский помощник, а не гарантия прибыли. При противоречивых данных рейтинг снижается. Сильный памп сам по себе не считается хорошим сигналом для Grid.
+<b>Принцип V7:</b> это исследовательский помощник, а не гарантия прибыли. При противоречивых данных рейтинг снижается. Сильный памп сам по себе не считается хорошим сигналом для Grid.
 </div>
 </div>
 
@@ -268,6 +289,59 @@ async function loadNews(){
  return {items,risk,confirmed:true};
 }
 
+// ---- Read-only Bybit connection ----
+const encoder=new TextEncoder();
+function hex(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function hmac(secret,msg){const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return hex(await crypto.subtle.sign('HMAC',key,encoder.encode(msg)))}
+async function bybitPrivate(path,params={},method='GET'){
+ const api=$('apiKey').value.trim(), secret=$('apiSecret').value.trim(), base=$('apiBase').value;
+ if(!api||!secret)throw Error('Введите API Key и API Secret');
+ const ts=Date.now().toString(), recv='5000';
+ let query=Object.keys(params).sort().map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+ const payload=method==='GET'?query:JSON.stringify(params);
+ const sign=await hmac(secret,ts+api+recv+payload);
+ const opt={method,headers:{'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-SIGN-TYPE':'2','X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}};
+ if(method!=='GET')opt.body=payload;
+ const r=await fetch(base+path+(method==='GET'&&query?'?'+query:''),opt); const j=await r.json();
+ if(j.retCode!==0)throw Error(j.retMsg||('Bybit '+j.retCode)); return j;
+}
+async function connectReadOnly(){
+ $('apiBox').style.display=$('apiBox').style.display==='none'?'block':'none';
+}
+async function readCurrentBot(){
+ $('readBybit').disabled=true;$('botReadout').textContent='Проверяю ключ и ищу активный Grid…';
+ try{
+  const info=await bybitPrivate('/v5/user/query-api');
+  if(info.result?.readOnly!==1)throw Error('Этот ключ НЕ Read-Only. Создай отдельный ключ только для чтения.');
+  let found=null, errors=[];
+  // Bybit exposes grid-bot detail APIs; exact response shapes can differ by account/product version.
+  const attempts=[
+   ['/v5/fgridbot/detail',{},'POST'],
+   ['/v5/grid/query-grid-detail',{},'POST']
+  ];
+  for(const [path,body,method] of attempts){
+   try{const j=await bybitPrivate(path,body,method); if(j.result){found={path,result:j.result};break}}catch(e){errors.push(path+': '+e.message)}
+  }
+  $('botStatus').value=found?'API подключён':'API подключён • бот не найден автоматически';
+  if(found){
+   const raw=JSON.stringify(found.result);
+   const text=raw.toLowerCase();
+   const pick=(names)=>{for(const n of names){const re=new RegExp('"'+n+'"\\s*:\\s*("[^"]*"|[-+]?\\d+(?:\\.\\d+)?)','i').exec(raw);if(re)return re[1].replace(/^"|"$/g,'')}return ''};
+   const sym=pick(['symbol','pair','symbolName']); const invest=pick(['investment','totalInvestment','investmentAmount','totalInvestmentAmount']); const grids=pick(['gridNum','gridNumber','numOfGrid','gridCount']); const lo=pick(['lowerPrice','lowerLimit','minPrice','priceLower']); const hi=pick(['upperPrice','upperLimit','maxPrice','priceUpper']);
+   if(sym)$('botPair').value=sym.includes('/')?sym:sym.replace(/(USDT|USDC|BTC)$/,'/$1');
+   if(invest&&isFinite(+invest))$('botDeposit').value=invest;$('deposit').value=$('botDeposit').value;
+   if(grids&&isFinite(+grids))$('botGrids').value=grids;$('grids').value=$('botGrids').value;
+   if(lo)$('botMin').value=lo;if(hi)$('botMax').value=hi;
+   $('botReadout').innerHTML=`<b>Read-Only подключён.</b> Найден ответ Bybit через <code>${found.path}</code>. Параметры, которые удалось однозначно распознать, подставлены автоматически.`;
+  }else{
+   $('botReadout').innerHTML=`<b>Ключ Read-Only подтверждён.</b> Автоматическое чтение параметров бота пока не подтверждено для текущего типа аккаунта. <br><span class="small">${errors.join(' • ')}</span><br>В этом случае параметры остаются ручными — это безопаснее, чем угадывать.`;
+  }
+ }catch(e){$('botStatus').value='Ошибка подключения';$('botReadout').textContent='Ошибка: '+e.message}
+ finally{$('readBybit').disabled=false}
+}
+function syncBotFields(){ $('deposit').value=$('botDeposit').value||21; $('grids').value=$('botGrids').value||12; if($('botMin').value)$('min').value=$('botMin').value; if($('botMax').value)$('max').value=$('botMax').value; }
+$('connect').onclick=connectReadOnly;$('readBybit').onclick=readCurrentBot;$('botDeposit').oninput=syncBotFields;$('botGrids').oninput=syncBotFields;$('botMin').oninput=syncBotFields;$('botMax').oninput=syncBotFields;
+
 async function scan(){
  $('scan').disabled=true;$('status').textContent='Сканирую Bybit: тикеры + 72 часовые свечи…';
  try{
@@ -286,8 +360,11 @@ async function scan(){
       out.sort((x,y)=>y.a.score-x.a.score);
     }
   }
-  const top=out.slice(0,12),best=top[0];
-  if(best)$('best').innerHTML=card(best.symbol.replace('USDT',''),best.a);
+  const top=out.slice(0,12);
+  const currentRaw=$('botPair').value.trim().toUpperCase().replace('/','');
+  const current=out.find(x=>x.symbol===currentRaw);
+  const best=top[0];
+  if(best){ let html=card(best.symbol.replace('USDT',''),best.a); if(current){ const diff=best.a.score-current.a.score; const decision=diff>=10?'🟢 Кандидат заметно лучше текущего бота':diff>=5?'🟡 Кандидат немного лучше — наблюдать':'🔵 Текущий бот не уступает'; html+=`<div class="card" style="margin:12px 0 0;padding:10px;background:#0c1425"><b>Сравнение с текущим ботом ${current.symbol.replace('USDT','')}</b><br>Текущий Grid: <b>${current.a.score.toFixed(0)}/100</b> • Кандидат: <b>${best.a.score.toFixed(0)}/100</b> • разница <b>${diff>=0?'+':''}${diff.toFixed(0)}</b><br><span class="small">${decision}. V7 не предлагает замену из-за небольшого преимущества.</span></div>`;} $('best').innerHTML=html; }
   $('rows').innerHTML=top.map((x,i)=>{const a=x.a;
    return `<tr class="${i===0?'rowtop':''}"><td class="rank">${i+1}</td><td><b>${x.symbol.replace('USDT','')}</b></td>
    <td>${num(a.p,7)}</td><td>${pct(a.ch)}</td><td>${num(a.g.lo,6)}–${num(a.g.hi,6)}</td><td><b>${a.score.toFixed(0)}</b> ${badge(a.label)}</td></tr>`;
