@@ -1,131 +1,134 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827">
-<title>Grid Hunter — Bybit</title>
+<meta name="theme-color" content="#0b1020">
+<title>Grid Hunter v0.5</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.wrap{max-width:760px;margin:auto;padding:18px 14px 40px}
-h1{font-size:27px;margin:5px 0}.sub{color:#94a3b8;font-size:14px;margin-bottom:18px}
-.card{background:#141b2f;border:1px solid #26304a;border-radius:18px;padding:16px;margin:12px 0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;color:#94a3b8;font-size:12px;margin-bottom:5px}
-input{width:100%;padding:11px;border-radius:11px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px}
-button{width:100%;border:0;border-radius:13px;padding:13px;background:#2563eb;color:white;font-size:16px;font-weight:700;margin-top:12px}
-button:disabled{opacity:.5}.status{font-size:13px;color:#94a3b8;margin-top:10px}
-.metric{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #26304a}.metric:last-child{border:0}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 5px;text-align:left;border-bottom:1px solid #26304a}th{color:#94a3b8}
-.badge{padding:4px 7px;border-radius:8px;background:#1e293b}.good{background:#14532d}.warn{background:#713f12}.bad{background:#7f1d1d}
-.small{color:#94a3b8;font-size:12px;line-height:1.45}.vtho{border:1px solid #2563eb}
+*{box-sizing:border-box}body{margin:0;background:#080d19;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:760px;margin:auto;padding:16px 13px 42px}.head{padding:8px 4px 14px}h1{font-size:28px;margin:0}.sub{color:#8fa0ba;font-size:13px;margin-top:5px}
+.card{background:#121a2d;border:1px solid #27334d;border-radius:19px;padding:15px;margin:12px 0;box-shadow:0 8px 25px #0002}
+.hero{border:1px solid #2563eb;background:linear-gradient(145deg,#152446,#11192b)}.eyebrow{font-size:12px;color:#8fa0ba;text-transform:uppercase;letter-spacing:.08em}
+.hero h2{font-size:30px;margin:5px 0}.bigscore{font-size:42px;font-weight:800}.muted{color:#91a0b8}.pill{display:inline-block;padding:5px 9px;border-radius:10px;font-weight:700;font-size:12px;background:#26344e}
+.good{background:#14532d}.warn{background:#713f12}.bad{background:#7f1d1d}
+.metric{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #26304a}.metric:last-child{border:0}
+.bar{height:8px;background:#26304a;border-radius:99px;overflow:hidden;margin-top:5px}.fill{height:100%;background:#60a5fa;border-radius:99px}
+.gridbox{font-size:24px;font-weight:800;margin:5px 0}.note{font-size:12px;line-height:1.45;color:#8fa0ba}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;color:#8fa0ba;font-size:11px;margin-bottom:4px}input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px}
+button{width:100%;border:0;border-radius:13px;padding:13px;background:#2563eb;color:#fff;font-size:16px;font-weight:750;margin-top:11px}button:disabled{opacity:.55}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 5px;border-bottom:1px solid #26304a;text-align:left;white-space:nowrap}th{color:#8fa0ba}
+.rank{font-weight:800}.rowtop{background:#18233b}.small{font-size:12px;color:#8fa0ba}.status{margin-top:9px;font-size:12px;color:#8fa0ba}
 </style>
 </head>
-<body>
-<div class="wrap">
-<h1>🎯 Grid Hunter</h1>
-<div class="sub">Bybit Spot • мобильный сканер для Grid</div>
+<body><div class="wrap">
+<div class="head"><h1>🎯 Grid Hunter</h1><div class="sub">v0.5 • Bybit Spot • поиск монеты для Grid</div></div>
 
 <div class="card">
 <div class="grid">
-<div class="field"><label>Депозит, USDT</label><input id="deposit" type="number" value="21" step="0.1"></div>
+<div class="field"><label>Депозит, USDT</label><input id="deposit" type="number" value="21"></div>
 <div class="field"><label>Сеток</label><input id="grids" type="number" value="12"></div>
-<div class="field"><label>Мин. цена</label><input id="min" type="number" value="0.000001" step="0.000001"></div>
-<div class="field"><label>Макс. цена</label><input id="max" type="number" value="0.001" step="0.000001"></div>
+<div class="field"><label>Мин. цена</label><input id="min" type="number" value="0.000001"></div>
+<div class="field"><label>Макс. цена</label><input id="max" type="number" value="0.001"></div>
 <div class="field"><label>Трейлинг</label><input id="trail" type="number" value="0.000815" step="0.000001"></div>
 <div class="field"><label>Стоп-лосс</label><input id="stop" type="number" value="0.0005" step="0.000001"></div>
 </div>
-<button id="scan">🔎 Сканировать Bybit</button>
-<div id="status" class="status">Данные берутся из публичного API Bybit. Ключи не нужны.</div>
+<button id="scan">🔎 Запустить полный анализ</button><div id="status" class="status">Ключи Bybit не нужны.</div>
 </div>
 
-<div class="card vtho">
-<h3 style="margin-top:0">⭐ Эталон VTHO/USDT</h3>
-<div id="vtho">Нажми «Сканировать»</div>
-</div>
+<div id="best" class="card hero"><div class="muted">Нажми «Запустить полный анализ»</div></div>
+<div id="vtho" class="card"><h3 style="margin:0 0 8px">⭐ Наш эталон VTHO/USDT</h3><div class="muted">—</div></div>
 
-<div class="card">
-<h3 style="margin-top:0">🏆 Лучшие кандидаты</h3>
-<div style="overflow:auto"><table><thead><tr><th>#</th><th>Монета</th><th>Цена</th><th>24ч</th><th>Score</th><th>Grid</th></tr></thead>
-<tbody id="rows"><tr><td colspan="6" class="small">Результаты появятся после сканирования.</td></tr></tbody></table></div>
-</div>
+<div class="card"><h3 style="margin:0 0 10px">🏆 Рейтинг кандидатов</h3>
+<div style="overflow:auto"><table><thead><tr><th>#</th><th>Монета</th><th>Цена</th><th>24ч</th><th>Grid</th><th>Score</th></tr></thead><tbody id="rows"></tbody></table></div></div>
 
-<div class="card small">
-<b>Что делает оценка:</b> учитывает изменение цены за 24 часа, объём, величину колебаний и близость текущей цены к выбранной зоне. Это исследовательский рейтинг, а не сигнал на покупку.
+<div class="card note"><b>Как читать Score:</b> 0–49 слабый кандидат, 50–69 средний, 70–84 хороший, 85+ очень хороший. Оценка учитывает объём, движение за 24ч, часовую волатильность, активность и риск выхода цены за выбранный диапазон. Это исследовательский рейтинг, не гарантия прибыли.</div>
 </div>
-</div>
-
 <script>
-const api='https://api.bybit.com/v5/market/tickers?category=spot';
 const $=id=>document.getElementById(id);
-const fmt=(x,d=8)=>Number(x).toLocaleString('en-US',{maximumFractionDigits:d});
+const tickURL='https://api.bybit.com/v5/market/tickers?category=spot';
+const klURL=s=>`https://api.bybit.com/v5/market/kline?category=spot&symbol=${s}&interval=60&limit=72`;
+const num=(x,d=9)=>Number(x).toLocaleString('en-US',{maximumFractionDigits:d});
+const pct=x=>(x*100).toFixed(2)+'%';
 
-function score(t){
-  const p=+t.lastPrice, ch=Math.abs(+t.price24hPcnt||0), vol=+t.turnover24h||0;
-  const min=+$('min').value,max=+$('max').value;
-  if(!p||p<min||p>max)return null;
-  // Activity proxy: volume + price movement, capped.
-  const activity=Math.min(45, Math.log10(Math.max(vol,1))*5);
-  const movement=Math.min(35, ch*100*2.5);
-  const stability=20-Math.min(20,ch*100*1.2);
-  const s=Math.max(0,Math.min(100,activity+movement+stability));
-  const label=s>=70?'A':s>=55?'B':'C';
-  return {s,label};
-}
-async function getKline(sym){
-  const u=`https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=60&limit=48`;
-  const r=await fetch(u); const j=await r.json();
-  if(j.retCode!==0)return [];
-  return (j.result.list||[]).map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
-}
-function gridRange(price){
+function rangeFor(p){
   const widths=[.06,.08,.10,.12,.15,.18,.22];
   let best=null;
   for(const w of widths){
-    const lo=price*(1-w), hi=price*(1+w);
-    const step=(hi-lo)/(+$('grids').value);
-    const distance=Math.min(price-lo,hi-price);
-    const s=100-Math.abs(w-.12)*180;
-    const candidate={lo,hi,step,s,distance};
-    if(!best||candidate.s>best.s)best=candidate;
+    const lo=p*(1-w),hi=p*(1+w),step=(hi-lo)/+$('grids').value;
+    // Prefer enough room for movement without making the range excessively wide.
+    const score=100-Math.abs(w-.12)*250;
+    const c={lo,hi,step,w,score};
+    if(!best||c.score>best.score)best=c;
   }
   return best;
 }
+async function candles(sym){
+  try{const r=await fetch(klURL(sym));const j=await r.json();
+    return (j.result?.list||[]).map(x=>({o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
+  }catch(e){return[]}
+}
+function analyse(t,ks){
+  const p=+t.lastPrice, ch=+t.price24hPcnt||0, vol=+t.turnover24h||0;
+  if(!p||p<+$('min').value||p>+$('max').value)return null;
+  let hourly=0, outside=0;
+  if(ks.length>5){
+    const rets=[]; for(let i=1;i<ks.length;i++) rets.push(Math.abs(ks[i].c/ks[i-1].c-1));
+    hourly=rets.reduce((a,b)=>a+b,0)/rets.length;
+  }
+  const g=rangeFor(p);
+  const rangePct=g.w*100;
+  const activity=Math.min(25,Math.log10(Math.max(vol,1))*2.8);
+  const move=Math.min(20,Math.abs(ch)*100*1.8);
+  const volScore=Math.min(25,hourly*100*7);
+  const sweet=Math.max(0,20-Math.abs(rangePct-12)*1.2);
+  // Penalize extreme 24h moves: useful for Grid, but dangerous if too one-sided.
+  const trendPenalty=Math.max(0,(Math.abs(ch)*100-18)*0.7);
+  let score=Math.max(0,Math.min(100,30+activity+move+volScore+sweet-trendPenalty));
+  const label=score>=85?'A+':score>=70?'A':score>=50?'B':'C';
+  return {p,ch,vol,hourly,g,score,label};
+}
+function badge(label){return `<span class="pill ${label[0]==='A'?'good':label==='B'?'warn':'bad'}">${label}</span>`}
+function card(name,a){
+ return `<div class="eyebrow">Лучший кандидат сейчас</div><h2>${name}</h2>
+ <div><span class="bigscore">${a.score.toFixed(1)}</span> <span class="muted">/ 100</span> ${badge(a.label)}</div>
+ <div class="metric"><span>Цена</span><b>${num(a.p,9)}</b></div>
+ <div class="metric"><span>Изменение 24ч</span><b>${pct(a.ch)}</b></div>
+ <div class="metric"><span>Оборот 24ч</span><b>${num(a.vol,0)} USDT</b></div>
+ <div class="metric"><span>Часовая активность</span><b>${(a.hourly*100).toFixed(3)}%</b></div>
+ <div style="margin-top:12px"><div class="muted" style="font-size:12px">Рекомендуемый диапазон</div><div class="gridbox">${num(a.g.lo,9)} — ${num(a.g.hi,9)}</div>
+ <div class="muted" style="font-size:12px">Шаг ≈ ${num(a.g.step,9)} • ${$('grids').value} сеток</div></div>`;
+}
 async function scan(){
-  $('scan').disabled=true;$('status').textContent='Сканирую Bybit…';
-  try{
-    const r=await fetch(api); const j=await r.json();
-    if(j.retCode!==0)throw Error(j.retMsg);
-    const arr=(j.result.list||[]).filter(t=>t.symbol.endsWith('USDT'));
-    const candidates=[];
-    for(const t of arr){
-      const sc=score(t); if(!sc)continue;
-      candidates.push({t,sc});
-    }
-    candidates.sort((a,b)=>b.sc.s-a.sc.s);
-    const top=candidates.slice(0,15);
+ $('scan').disabled=true;$('status').textContent='Получаю тикеры и анализирую часовые свечи…';
+ try{
+  const r=await fetch(tickURL),j=await r.json(); if(j.retCode!==0)throw Error(j.retMsg);
+  const arr=(j.result.list||[]).filter(t=>t.symbol.endsWith('USDT'));
+  const pool=arr.filter(t=>+t.lastPrice>=+$('min').value&&+t.lastPrice<=+$('max').value)
+                .sort((a,b)=>(+b.turnover24h)-(+a.turnover24h)).slice(0,35);
+  const out=[];
+  for(const t of pool){const a=analyse(t,await candles(t.symbol));if(a)out.push({symbol:t.symbol,a});}
+  out.sort((x,y)=>y.a.score-x.a.score);
+  const top=out.slice(0,15), best=top[0];
+  if(best)$('best').innerHTML=card(best.symbol.replace('USDT',''),best.a);
 
-    const v=arr.find(x=>x.symbol==='VTHOUSDT');
-    if(v){
-      const sc=score(v), g=gridRange(+v.lastPrice);
-      $('vtho').innerHTML=`<div class="metric"><span>Цена</span><b>${fmt(v.lastPrice,9)}</b></div>
-      <div class="metric"><span>24ч</span><b>${(+v.price24hPcnt*100).toFixed(2)}%</b></div>
-      <div class="metric"><span>Оборот 24ч</span><b>${fmt(+v.turnover24h,0)}</b></div>
-      <div class="metric"><span>Расчётный диапазон</span><b>${fmt(g.lo,9)} — ${fmt(g.hi,9)}</b></div>
-      <div class="metric"><span>Ориентир</span><b>${sc?sc.s.toFixed(1):'—'} / 100</b></div>`;
-    } else $('vtho').textContent='VTHO/USDT не найден среди доступных spot-тикеров.';
-
-    $('rows').innerHTML=top.map((x,i)=>{
-      const t=x.t,g=gridRange(+t.lastPrice);
-      const cls=x.sc.label==='A'?'good':x.sc.label==='B'?'warn':'bad';
-      return `<tr><td>${i+1}</td><td><b>${t.symbol.replace('USDT','')}</b></td><td>${fmt(t.lastPrice,9)}</td>
-      <td>${(+t.price24hPcnt*100).toFixed(2)}%</td><td><span class="badge ${cls}">${x.sc.s.toFixed(0)} ${x.sc.label}</span></td>
-      <td>${fmt(g.lo,8)}–${fmt(g.hi,8)}</td></tr>`;
-    }).join('');
-    $('status').textContent=`Готово: найдено ${candidates.length} монет в заданном ценовом диапазоне.`;
-  }catch(e){$('status').textContent='Ошибка: '+e.message+'. Если iPhone блокирует запрос, открой страницу через Safari после размещения на HTTPS-сайте.';}
-  finally{$('scan').disabled=false;}
+  const v=out.find(x=>x.symbol==='VTHOUSDT') || (arr.find(x=>x.symbol==='VTHOUSDT') ? {symbol:'VTHOUSDT',a:analyse(arr.find(x=>x.symbol==='VTHOUSDT'),[])}:null);
+  if(v?.a){
+    const a=v.a;$('vtho').innerHTML=`<h3 style="margin:0 0 8px">⭐ Наш эталон VTHO/USDT</h3>
+    <div class="metric"><span>Score</span><b>${a.score.toFixed(1)} ${badge(a.label)}</b></div>
+    <div class="metric"><span>Цена</span><b>${num(a.p,9)}</b></div>
+    <div class="metric"><span>24ч</span><b>${pct(a.ch)}</b></div>
+    <div class="metric"><span>Диапазон для 12 сеток</span><b>${num(a.g.lo,9)} — ${num(a.g.hi,9)}</b></div>
+    <div class="metric"><span>Наш трейлинг</span><b>${$('trail').value}</b></div>
+    <div class="metric"><span>Наш стоп-лосс</span><b>${$('stop').value}</b></div>`;
+  }
+  $('rows').innerHTML=top.map((x,i)=>{const a=x.a;
+   return `<tr class="${i===0?'rowtop':''}"><td class="rank">${i+1}</td><td><b>${x.symbol.replace('USDT','')}</b></td>
+   <td>${num(a.p,9)}</td><td>${pct(a.ch)}</td><td>${num(a.g.lo,8)}–${num(a.g.hi,8)}</td><td><b>${a.score.toFixed(0)}</b> ${badge(a.label)}</td></tr>`}).join('');
+  $('status').textContent=`Готово • подробно проверено ${pool.length} ликвидных кандидатов в твоём ценовом диапазоне.`;
+ }catch(e){$('status').textContent='Ошибка: '+e.message}
+ finally{$('scan').disabled=false}
 }
 $('scan').onclick=scan;
-</script>
-</body>
-</html>
+</script></body></html>
