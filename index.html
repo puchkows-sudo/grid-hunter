@@ -41,7 +41,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 .source-ok{color:#86efac}.source-warn{color:#fbbf24}.timestamp{font-size:10px;color:#7f8da5}.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.ex{background:#0c1425;border:1px solid #26344e;border-radius:10px;padding:7px;font-size:10px}.ex b{display:block;font-size:12px;margin-top:2px}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px}.warningbox{border:1px solid #92400e;background:#3b2508;border-radius:10px;padding:9px;margin-top:8px;font-size:11px;line-height:1.4}</style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.6 SUPER AI • MARKET INTELLIGENCE + DIAGNOSTIC • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.7 SUPER AI • MARKET INTELLIGENCE + REGIONAL DIAGNOSTIC • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -57,14 +57,14 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div id="apiBox" style="display:none">
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div><div style="margin-top:7px"><button type="button" onclick="clearSavedKeys()" style="padding:7px 10px;border-radius:8px">🗑️ Забыть сохранённые ключи на этом устройстве</button></div>
-<div class="field" style="margin-top:7px"><label>Регион API — Нидерланды больше не ставятся автоматически</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com" selected>Global — api.bybit.com</option><option value="https://api.bybit.nl">Нидерланды — api.bybit.nl</option><option value="https://api.bybit.eu">EEA — api.bybit.eu</option></select></div>
+<div class="field" style="margin-top:7px"><label>Регион API — при диагностике программа дополнительно проверит приватный Grid-доступ на всех регионах</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com" selected>Global — api.bybit.com</option><option value="https://api.bybit.nl">Нидерланды — api.bybit.nl</option><option value="https://api.bybit.eu">EEA — api.bybit.eu</option></select></div>
 <div class="field" style="margin-top:7px"><label>Grid ID — резервный вариант</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="не нужен, если ID найден из ссылки"></div>
 <button id="readBybit">📡 Считать мой Spot Grid</button><div class="small" style="margin-top:6px">Программа не угадывает Grid ID. Если доступный API не даёт список ботов, используется ID из ссылки или ручной резерв.</div>
 <div class="note" style="margin-top:7px">Только запросы чтения. V1.1 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
 </div>
 <div class="card" style="margin-top:10px">
 <div class="section-title">🔬 Диагностика подключения Bybit</div>
-<div class="note">Запускает проверки по порядку и показывает <b>точное место сбоя</b>. API Secret нигде не выводится.</div>
+<div class="note">Запускает проверки по порядку и показывает <b>точное место сбоя</b>. При проблеме Spot Grid программа сама проверяет Global / Netherlands / EEA и при успешном Grid-доступе переключает рабочий endpoint. API Secret нигде не выводится.</div>
 <div id="diagList" style="margin-top:8px"></div>
 <button id="diagRun" type="button">🧪 Запустить / повторить диагностику</button>
 <div id="diagTime" class="small" style="margin-top:6px"></div>
@@ -327,7 +327,7 @@ function bybitError(j){
 }
 const KEY_STORE='gridHunterBybitKeys_v16';
 function loadSavedKeys(){try{const x=JSON.parse(localStorage.getItem(KEY_STORE)||'null');if(x){if(x.api)$('apiKey').value=x.api;if(x.secret)$('apiSecret').value=x.secret;if(x.base)$('apiBase').value=x.base;return true}}catch(e){}return false}
-function saveKeys(){try{const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim(),base=$('apiBase').value;if(api&&secret)localStorage.setItem(KEY_STORE,JSON.stringify({api,secret,base,version:'1.6'}))}catch(e){}}
+function saveKeys(){try{const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim(),base=$('apiBase').value;if(api&&secret)localStorage.setItem(KEY_STORE,JSON.stringify({api,secret,base,version:'1.7'}))}catch(e){}}
 function clearSavedKeys(){try{localStorage.removeItem(KEY_STORE)}catch(e){} $('apiKey').value='';$('apiSecret').value='';}
 async function bybitPrivate(path,params={},method='POST'){
  const api=$('apiKey').value.trim(), secret=$('apiSecret').value.trim(), base=$('apiBase').value;
@@ -425,7 +425,7 @@ function explainBybit(code,msg){
   '10002':'Время запроса истекло: проверь часы устройства/синхронизацию и recvWindow.',
   '10003':'API Key не распознан или ключ относится к другому окружению/региону.',
   '10004':'Неверная подпись: проверь API Secret, способ подписи и отсутствие лишних пробелов.',
-  '10005':'Недостаточно прав API: проверь Read-Only и Spot permissions.',
+  '10005':'Bybit отклонил именно этот приватный запрос. Если API Key/Read-Only/Spot уже прошли проверку, вероятна проблема регионального endpoint или доступа аккаунта к конкретному Spot Grid endpoint.',
   '10006':'Слишком много запросов: подожди несколько секунд и повтори.',
   '10010':'IP-адрес не входит в разрешённый список API-ключа.',
   '10007':'Ошибка авторизации API.',
@@ -450,8 +450,27 @@ async function diagPrivate(base,path,params={},method='GET'){
  if(!r.ok||String(er.code??'0')!=='0')throw Error(`Код ${er.code??r.status}: ${explainBybit(er.code??r.status,er.msg)}`);
  return j;
 }
+async function diagGridOnRegion(rg,id){
+ const started=Date.now();
+ try{
+  const d=await diagPrivate(rg.base,'/v5/grid/query-grid-detail',{gridId:id},'POST');
+  return {ok:true,region:rg,ms:Date.now()-started,j:d};
+ }catch(e){
+  return {ok:false,region:rg,ms:Date.now()-started,error:diagError(e)};
+ }
+}
+async function diagPrivateApiOnRegion(rg){
+ try{
+  await diagPrivate(rg.base,'/v5/user/query-api',{},'GET');
+  return {ok:true,region:rg};
+ }catch(e){
+  return {ok:false,region:rg,error:diagError(e)};
+ }
+}
+function regionShort(name){return name==='Netherlands'?'NL':name==='EEA'?'EEA':'Global'}
+
 async function runDiagnostics(){
- const rows=[]; const base=apiBase(); const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim();
+ const rows=[]; let base=apiBase(); const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim();
  const set=(title,status,detail)=>{rows.push({title,status,detail});diagRender(rows)};
  set('Интернет / браузер','WAIT','Проверяю доступность сети и начинаю последовательную диагностику…');
  if(navigator.onLine===false){rows.pop();set('Интернет / браузер','ERROR','Браузер сообщает offline. Проверь Wi‑Fi/мобильный интернет.');return}
@@ -467,10 +486,10 @@ async function runDiagnostics(){
   else set('Серверное время','WARN','Bybit ответил, но серверное время не удалось разобрать.');
  }catch(e){set('Серверное время','ERROR',diagError(e))}
  try{const r=await diagPublic(base,'/v5/market/tickers?category=spot&symbol=BTCUSDT');const x=r.j.result?.list?.[0];set('Публичные рыночные данные','PASS',`BTCUSDT получен LIVE: ${x?.lastPrice||'—'} • 24ч ${x?.price24hPcnt||'—'} • задержка ${r.ms} мс.`)}catch(e){set('Публичные рыночные данные','ERROR',diagError(e))}
- // region comparison is public only; private auth is tested on selected endpoint to avoid leaking secret to other regions unnecessarily
+ // Public region check first; private regional probing is done below only after the key is validated.
  let regionOk=[];
- for(const rg of DIAG_REGIONS){try{await diagPublic(rg.base);regionOk.push(rg.name)}catch(e){}}
- set('Регион API','PASS',regionOk.length?`Публичный API отвечает: ${regionOk.join(', ')}. Авторизация ниже проверяется только на выбранном ${base}.`:'Ни один из трёх публичных endpoint не ответил.');
+ for(const rg of DIAG_REGIONS){try{const r=await diagPublic(rg.base);regionOk.push(`${rg.name} (${r.ms} мс)`)}catch(e){}}
+ set('Регион API','PASS',regionOk.length?`Публичный API отвечает: ${regionOk.join(', ')}. Ниже проверю приватный доступ; при необходимости Grid Hunter сам найдёт рабочий регион.`:'Ни один из трёх публичных endpoint не ответил.');
  if(!api||!secret){set('API Key принят','ERROR','Не введены API Key и/или API Secret. Открой блок API выше.');
   set('Подпись / Secret','SKIP','Невозможно проверить без обоих ключей.');set('Права ключа','SKIP','Невозможно проверить без успешной авторизации.');
  }else{
@@ -490,12 +509,35 @@ async function runDiagnostics(){
   }
  }
  const id=$('gridId').value.trim()||pickGridIdFromUrl();
- if(!id){set('Доступ к Spot Grid','WARN','Endpoint Spot Grid нельзя полноценно проверить без конкретного Grid ID. Программа намеренно не угадывает ID.');set('Определение Grid ID','ERROR','Grid ID не найден ни в поле, ни в URL. Вставь числовой ID вручную.');set('Получение деталей Grid','SKIP','Сначала нужен Grid ID.');}
- else{
+ if(!id){
+  set('Определение Grid ID','ERROR','Grid ID не найден ни в поле, ни в URL. Вставь числовой ID вручную.');
+  set('Доступ к Spot Grid','WARN','Без конкретного Grid ID нельзя проверить именно тот бот, который нужно считать.');
+  set('Получение деталей Grid','SKIP','Сначала нужен Grid ID.');
+ }else{
   set('Определение Grid ID','PASS',`Используется Grid ID ${id}.`);
-  try{const d=await diagPrivate(base,'/v5/grid/query-grid-detail',{gridId:id},'POST');set('Доступ к Spot Grid','PASS','Приватный Spot Grid endpoint отвечает.');set('Получение деталей Grid','PASS','Детали выбранного Grid ID получены без изменения бота.');
-   const raw=d.result||{};const sym=pickDeep(raw,['symbol','pair','symbolName']);if(sym)$('botPair').value=normalizePair(sym);syncBotFields();$('botStatus').value='API подключён • Spot Grid считан';
-  }catch(e){set('Доступ к Spot Grid','ERROR',diagError(e));set('Получение деталей Grid','ERROR','Grid ID найден, но детали получить не удалось. Проверь ID, принадлежность боту и доступ ключа.');}
+  if(!api||!secret){set('Доступ к Spot Grid','SKIP','Сначала нужны корректные API Key и Secret.');set('Получение деталей Grid','SKIP','Сначала нужны корректные API Key и Secret.');}
+  else{
+   const ordered=[...DIAG_REGIONS].sort((a,b)=>(a.base===base?0:1)-(b.base===base?0:1));
+   const results=[];
+   for(const rg of ordered){results.push(await diagGridOnRegion(rg,id));}
+   const summary=results.map(x=>`${regionShort(x.region.name)}: ${x.ok?'✅ доступ':'❌ '+x.error}`).join(' • ');
+   const good=results.find(x=>x.ok);
+   if(good){
+    if(good.region.base!==base){
+     base=good.region.base;$('apiBase').value=base;saveKeys();
+     set('Доступ к Spot Grid','PASS',`${summary}. Рабочий Grid endpoint найден на ${good.region.name}; программа автоматически переключила регион.`);
+    }else set('Доступ к Spot Grid','PASS',`${summary}. Выбранный endpoint имеет доступ к этому Spot Grid.`);
+    try{
+     const d=good.j;
+     const raw=d.result||{};const sym=pickDeep(raw,['symbol','pair','symbolName']);if(sym)$('botPair').value=normalizePair(sym);syncBotFields();$('botStatus').value='API подключён • Spot Grid считан';
+     set('Получение деталей Grid','PASS',`Детали Grid ID получены на ${good.region.name} без изменения бота.`);
+    }catch(e){set('Получение деталей Grid','ERROR','Grid endpoint ответил, но данные Grid не удалось обработать: '+diagError(e));}
+   }else{
+    set('Доступ к Spot Grid','ERROR',`${summary}. Ни один из Global / Netherlands / EEA endpoint не дал доступ к этому Grid ID.`);
+    const all10005=results.every(x=>/10005/.test(x.error||''));
+    set('Получение деталей Grid','ERROR',all10005?'Все три региона вернули 10005. При этом общий API Key/Read-Only/Spot может быть действителен: проблема, вероятнее всего, в доступе аккаунта/региональной доступности конкретного Spot Grid API, а не в неверном Secret.':'Grid ID найден, но ни один проверенный регион не смог вернуть детали. Смотри точную ошибку по каждому региону выше.');
+   }
+  }
  }
  $('diagTime').textContent='Последняя диагностика: '+new Date().toLocaleString();
 }
