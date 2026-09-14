@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d19">
-<title>Grid Hunter AI v1.8 — Regional Diagnostic</title>
+<title>Grid Hunter AI v1.9 — Grid API Auth Fix</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
@@ -41,7 +41,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 .source-ok{color:#86efac}.source-warn{color:#fbbf24}.timestamp{font-size:10px;color:#7f8da5}.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.ex{background:#0c1425;border:1px solid #26344e;border-radius:10px;padding:7px;font-size:10px}.ex b{display:block;font-size:12px;margin-top:2px}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px}.warningbox{border:1px solid #92400e;background:#3b2508;border-radius:10px;padding:9px;margin-top:8px;font-size:11px;line-height:1.4}</style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.8 SUPER AI • MARKET INTELLIGENCE + REGIONAL DIAGNOSTIC • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.9 SUPER AI • GRID API AUTH FIX + REGIONAL DIAGNOSTIC • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -58,13 +58,13 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
 <div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div><div style="margin-top:7px"><button type="button" onclick="clearSavedKeys()" style="padding:7px 10px;border-radius:8px">🗑️ Забыть сохранённые ключи на этом устройстве</button></div>
 <div class="field" style="margin-top:7px"><label>Регион API — при диагностике программа дополнительно проверит приватный Grid-доступ на всех регионах</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com" selected>Global — api.bybit.com</option><option value="https://api.bybit.nl">Нидерланды — api.bybit.nl</option><option value="https://api.bybit.eu">EEA — api.bybit.eu</option></select></div>
-<div class="field" style="margin-top:7px"><label>Grid ID — резервный вариант</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="например 637267939422158068"><div class="small" style="margin-top:5px">Введи Grid ID один раз — v1.8 запомнит его на этом устройстве. Если ID уже есть в ссылке, программа подставит его автоматически.</div></div>
+<div class="field" style="margin-top:7px"><label>Grid ID — резервный вариант</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="например 637267939422158068"><div class="small" style="margin-top:5px">Введи Grid ID один раз — v1.9 запомнит его на этом устройстве. Если ID уже есть в ссылке, программа подставит его автоматически.</div></div>
 <button id="readBybit">📡 Считать мой Spot Grid</button><div class="small" style="margin-top:6px">Программа не угадывает Grid ID. Если доступный API не даёт список ботов, используется ID из ссылки или ручной резерв.</div>
-<div class="note" style="margin-top:7px">Только запросы чтения. v1.8 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
+<div class="note" style="margin-top:7px">Только запросы чтения. v1.9 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
 </div>
 <div class="card" style="margin-top:10px">
 <div class="section-title">🔬 Диагностика подключения Bybit</div>
-<div class="note">Запускает проверки по порядку и показывает <b>точное место сбоя</b>. При проблеме Spot Grid программа сама проверяет Global / Netherlands / EEA и при успешном Grid-доступе переключает рабочий endpoint. API Secret нигде не выводится.</div>
+<div class="note">Запускает проверки по порядку и показывает <b>точное место сбоя</b>. При проблеме Spot Grid программа сама проверяет Global / Netherlands / EEA и при успешном Grid-доступе переключает рабочий endpoint. Для HMAC используется корректный режим подписи без RSA-заголовка. API Secret нигде не выводится.</div>
 <div id="diagList" style="margin-top:8px"></div>
 <div id="regionMatrix" class="card" style="margin:10px 0 0;padding:10px;background:#0c1425">
 <div style="font-weight:800;font-size:13px">🌍 Приватная проверка Grid по регионам</div>
@@ -332,7 +332,7 @@ function bybitError(j){
 }
 const KEY_STORE='gridHunterBybitKeys_v16';
 function loadSavedKeys(){try{const x=JSON.parse(localStorage.getItem(KEY_STORE)||'null');if(x){if(x.api)$('apiKey').value=x.api;if(x.secret)$('apiSecret').value=x.secret;if(x.base)$('apiBase').value=x.base;if(x.gridId)$('gridId').value=x.gridId;return true}}catch(e){}return false}
-function saveKeys(){try{const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim(),base=$('apiBase').value,gridId=$('gridId').value.trim();if(api&&secret)localStorage.setItem(KEY_STORE,JSON.stringify({api,secret,base,gridId,version:'1.8'})); if(gridId)localStorage.setItem('gridHunterGridId_v172',gridId)}catch(e){}}
+function saveKeys(){try{const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim(),base=$('apiBase').value,gridId=$('gridId').value.trim();if(api&&secret)localStorage.setItem(KEY_STORE,JSON.stringify({api,secret,base,gridId,version:'1.9'})); if(gridId)localStorage.setItem('gridHunterGridId_v172',gridId)}catch(e){}}
 function clearSavedKeys(){try{localStorage.removeItem(KEY_STORE);localStorage.removeItem('gridHunterGridId_v172')}catch(e){} $('apiKey').value='';$('apiSecret').value='';$('gridId').value='';}
 async function bybitPrivate(path,params={},method='POST'){
  const api=$('apiKey').value.trim(), secret=$('apiSecret').value.trim(), base=$('apiBase').value;
@@ -341,7 +341,7 @@ async function bybitPrivate(path,params={},method='POST'){
  const query=Object.keys(params).sort().map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
  const payload=method==='GET'?query:JSON.stringify(params);
  const sign=await hmac(secret,ts+api+recv+payload);
- const opt={method,headers:{'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-SIGN-TYPE':'2','X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}};
+ const headers={'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}; if(method!=='GET')headers['Content-Type']='application/json'; const opt={method,headers};
  if(method!=='GET')opt.body=payload;
  let r;
  try{r=await fetch(base+path+(method==='GET'&&query?'?'+query:''),opt)}catch(e){throw Error(`Сетевой/CORS сбой при обращении к ${base}. Попробуй другой регион API. (${e.message})`)}
@@ -430,7 +430,7 @@ function explainBybit(code,msg){
   '10002':'Время запроса истекло: проверь часы устройства/синхронизацию и recvWindow.',
   '10003':'API Key не распознан или ключ относится к другому окружению/региону.',
   '10004':'Неверная подпись: проверь API Secret, способ подписи и отсутствие лишних пробелов.',
-  '10005':'Bybit отклонил именно этот приватный запрос. Если API Key/Read-Only/Spot уже прошли проверку, вероятна проблема регионального endpoint или доступа аккаунта к конкретному Spot Grid endpoint.',
+  '10005':'Bybit отклонил именно этот приватный запрос. Если стандартный private READ проходит, 10005 относится к разрешению/доступу конкретного Spot Grid endpoint или к его API-контексту.',
   '10006':'Слишком много запросов: подожди несколько секунд и повтори.',
   '10010':'IP-адрес не входит в разрешённый список API-ключа.',
   '10007':'Ошибка авторизации API.',
@@ -447,7 +447,7 @@ async function diagPrivate(base,path,params={},method='GET'){
  const query=Object.keys(params).sort().map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
  const payload=method==='GET'?query:JSON.stringify(params);
  const sign=await hmac(secret,ts+api+recv+payload);
- const opt={method,headers:{'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-SIGN-TYPE':'2','X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}};
+ const headers={'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}; const opt={method,headers};
  if(method!=='GET')opt.body=payload;
  let r; try{r=await fetch(base+path+(method==='GET'&&query?'?'+query:''),opt)}catch(e){throw Error('Сеть/CORS: '+e.message)}
  const text=await r.text(); let j; try{j=JSON.parse(text)}catch(e){throw Error(`HTTP ${r.status}: Bybit вернул не-JSON ответ`)}
@@ -501,6 +501,7 @@ async function runDiagnostics(){
   else set('Серверное время','WARN','Bybit ответил, но серверное время не удалось разобрать.');
  }catch(e){set('Серверное время','ERROR',diagError(e))}
  try{const r=await diagPublic(base,'/v5/market/tickers?category=spot&symbol=BTCUSDT');const x=r.j.result?.list?.[0];set('Публичные рыночные данные','PASS',`BTCUSDT получен LIVE: ${x?.lastPrice||'—'} • 24ч ${x?.price24hPcnt||'—'} • задержка ${r.ms} мс.`)}catch(e){set('Публичные рыночные данные','ERROR',diagError(e))}
+  // Canonical authenticated read checks: distinguish general account read access from Grid-specific permission.
  // Public region check first; private regional probing is done below only after the key is validated.
  let regionOk=[];
  for(const rg of DIAG_REGIONS){try{const r=await diagPublic(rg.base);regionOk.push(`${rg.name} (${r.ms} мс)`)}catch(e){}}
