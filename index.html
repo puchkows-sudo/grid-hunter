@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d19">
-<title>Grid Hunter AI v1.2</title>
+<title>Grid Hunter AI v1.6 — Market Intelligence</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
@@ -38,10 +38,10 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 .news-list{margin-top:8px}.news-item{padding:8px 0;border-bottom:1px solid #26304a}
 .news-item:last-child{border:0}.news-item a{color:#dbeafe;text-decoration:none;font-size:12px;line-height:1.35}
 .news-meta{font-size:10px;color:#7f8da5;margin-top:3px}.news-risk{font-weight:800}
-</style>
+.source-ok{color:#86efac}.source-warn{color:#fbbf24}.timestamp{font-size:10px;color:#7f8da5}.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.ex{background:#0c1425;border:1px solid #26344e;border-radius:10px;padding:7px;font-size:10px}.ex b{display:block;font-size:12px;margin-top:2px}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px}.warningbox{border:1px solid #92400e;background:#3b2508;border-radius:10px;padding:9px;margin-top:8px;font-size:11px;line-height:1.4}</style>
 </head>
 <body><div class="wrap">
-<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.2 REGION FIXED • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
+<div class="head"><h1>🎯 Grid Hunter AI</h1><div class="sub">v1.6 SUPER AI • MARKET INTELLIGENCE + DIAGNOSTIC • Bybit Spot Grid • текущий бот = точка отсчёта</div></div>
 
 <div class="card">
 <div class="section-title">🤖 Текущий бот</div>
@@ -56,11 +56,18 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <button id="connect">🔐 Подключить Bybit (только чтение)</button>
 <div id="apiBox" style="display:none">
 <div class="field"><label>API Key — вводится только на этом устройстве</label><input id="apiKey" autocomplete="off" spellcheck="false"></div>
-<div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div>
-<div class="field" style="margin-top:7px"><label>Регион API</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com" selected>Global — основной вариант для аккаунта РФ</option><option value="https://api.bybit.eu">EEA / EU — только для EU-аккаунта</option><option value="https://api.bybit.nl">Нидерланды — только для NL-аккаунта</option></select></div>
-<div class="field" style="margin-top:7px"><label>Grid ID (если известен)</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="например 123456789"></div>
-<button id="readBybit">📡 Считать мой Spot Grid</button><div class="small" style="margin-top:6px">Для аккаунта РФ сначала используй Global (api.bybit.com). EEA/NL — только если сам аккаунт относится к соответствующему региону.</div>
+<div class="field" style="margin-top:7px"><label>API Secret</label><input id="apiSecret" type="password" autocomplete="off" spellcheck="false"></div><div style="margin-top:7px"><button type="button" onclick="clearSavedKeys()" style="padding:7px 10px;border-radius:8px">🗑️ Забыть сохранённые ключи на этом устройстве</button></div>
+<div class="field" style="margin-top:7px"><label>Регион API — Нидерланды больше не ставятся автоматически</label><select id="apiBase" style="width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0c1425;color:white;font-size:15px"><option value="https://api.bybit.com" selected>Global — api.bybit.com</option><option value="https://api.bybit.nl">Нидерланды — api.bybit.nl</option><option value="https://api.bybit.eu">EEA — api.bybit.eu</option></select></div>
+<div class="field" style="margin-top:7px"><label>Grid ID — резервный вариант</label><input id="gridId" inputmode="numeric" autocomplete="off" placeholder="не нужен, если ID найден из ссылки"></div>
+<button id="readBybit">📡 Считать мой Spot Grid</button><div class="small" style="margin-top:6px">Программа не угадывает Grid ID. Если доступный API не даёт список ботов, используется ID из ссылки или ручной резерв.</div>
 <div class="note" style="margin-top:7px">Только запросы чтения. V1.1 не содержит функций создания, изменения или закрытия ордеров/ботов. API Secret не отправляй в чат и не вставляй в код.</div>
+</div>
+<div class="card" style="margin-top:10px">
+<div class="section-title">🔬 Диагностика подключения Bybit</div>
+<div class="note">Запускает проверки по порядку и показывает <b>точное место сбоя</b>. API Secret нигде не выводится.</div>
+<div id="diagList" style="margin-top:8px"></div>
+<button id="diagRun" type="button">🧪 Запустить / повторить диагностику</button>
+<div id="diagTime" class="small" style="margin-top:6px"></div>
 </div>
 <div id="botReadout" class="note" style="margin-top:8px">Можно работать вручную. API: сначала проверка ключа, затем чтение Spot Grid. Ключи не отправляются в чат.</div>
 </div>
@@ -77,7 +84,7 @@ th{color:#8fa0ba}.rowtop{background:#18233b}.rank{font-weight:800}
 <div id="status" class="status">Депозит используется как параметр стратегии, а не как эталон конкретной монеты.</div>
 </div>
 
-<div id="best" class="card hero"><div class="muted">Запусти анализ — V0.8 сначала оценивает текущий бот, затем ищет реальную замену.</div></div>
+<div id="best" class="card hero"><div class="muted">Подключи Bybit и запусти анализ. Цена и рыночные данные Bybit берутся LIVE, без кэша; другие биржи используются для независимой проверки.</div></div>
 
 <div class="card">
 <div class="section-title">🧠 Что учитывает AI</div>
@@ -137,10 +144,28 @@ function gridFor(p){
 }
 async function candles(sym){
  try{
-  const r=await fetch(klURL(sym)); const j=await r.json();
+  const r=await fetch(klURL(sym),{cache:'no-store'}); const j=await r.json();
   return (j.result?.list||[]).map(x=>({o:+x[1],h:+x[2],l:+x[3],c:+x[4]})).reverse();
  }catch(e){return []}
 }
+async function fetchJSON(url,opts={}){const r=await fetch(url,{...opts,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}
+async function crossExchange(symbol){
+ const base=symbol.replace(/USDT$/,'');
+ const q=[['Binance',`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`],['OKX',`https://www.okx.com/api/v5/market/ticker?instId=${base}-USDT`],['Bybit',`${apiBase()}/v5/market/tickers?category=spot&symbol=${symbol}`],['Gate',`https://api.gateio.ws/api/v4/spot/tickers?currency_pair=${base}_USDT`],['KuCoin',`https://api.kucoin.com/api/v1/market/stats?symbol=${base}-USDT`]];
+ const out=[];
+ for(const [name,url] of q){try{const j=await fetchJSON(url);let price=null,chg=null,vol=null;
+  if(name==='Binance'){price=+j.lastPrice;chg=+j.priceChangePercent/100;vol=+j.quoteVolume}
+  if(name==='OKX'){const x=j.data?.[0];price=+x?.last;chg=x?.open24h?price/+x.open24h-1:null;vol=+x?.volCcy24h}
+  if(name==='Bybit'){const x=j.result?.list?.[0];price=+x?.lastPrice;chg=+x?.price24hPcnt;vol=+x?.turnover24h}
+  if(name==='Gate'){const x=Array.isArray(j)?j[0]:null;price=+x?.last;chg=x?.change_percentage!=null?+x.change_percentage/100:null;vol=+x?.quote_volume}
+  if(name==='KuCoin'){const x=j.data;price=+x?.last;chg=x?.changeRate!=null?+x.changeRate:null;vol=+x?.volValue}
+  if(Number.isFinite(price)&&price>0)out.push({name,price,chg,vol});
+ }catch(e){}}
+ const by=out.find(x=>x.name==='Bybit'), peers=out.filter(x=>x.name!=='Bybit');
+ const avg=peers.length?peers.reduce((a,x)=>a+x.price,0)/peers.length:null, spread=by&&avg?by.price/avg-1:null;
+ return {rows:out,bybit:by,avg,spread,checkedAt:Date.now()};
+}
+function crossHtml(c){if(!c||!c.rows?.length)return '<div class="warningbox">⚠️ Межбиржевая проверка недоступна. Внешние данные не повышают рейтинг.</div>';return `<div class="metric"><span>Межбиржевая проверка</span><b>${c.rows.length} бирж</b></div><div class="exgrid">${c.rows.map(x=>`<div class="ex"><span>${x.name}</span><b>${num(x.price,9)}</b><span>${x.chg==null?'—':pct(x.chg)} • ${x.vol?num(x.vol,0):'—'}</span></div>`).join('')}</div>${c.spread==null?'':`<div class="small" style="margin-top:7px">Bybit к среднему других бирж: <b>${pct(c.spread)}</b></div>`}`}
 function analyse(t,ks){
  const p=+t.lastPrice,ch=+t.price24hPcnt||0,vol=+t.turnover24h||0;
  if(!p||p<+$('min').value||p>+$('max').value)return null;
@@ -180,7 +205,7 @@ function reasons(a){
  if(!r.length)r.push('данные смешанные — требуется наблюдение');
  return r.join(' • ');
 }
-function card(name,a){
+function card(name,a,cross){
  return `<div class="eyebrow">AI-кандидат №1</div><h2>${name}</h2>
  <div><span class="bigscore">${a.score.toFixed(0)}</span> <span class="muted">/100</span> ${badge(a.label)}</div>
  <div class="decision">${a.decision}</div>
@@ -192,7 +217,7 @@ function card(name,a){
  <div class="range">${num(a.g.lo,9)} — ${num(a.g.hi,9)}</div>
  <div class="small">${Math.min(80,Math.max(4,+$('grids').value||12))} сеток • шаг ≈ ${num(a.g.step,9)} • ≈ ${a.g.perGrid.toFixed(2)} USDT/сетку</div></div>
  <div class="reason"><b>Почему:</b> ${reasons(a)}</div>
- <div class="metric"><span>Новости / макро</span><b>LIVE-сводка</b></div>
+ <div class="metric"><span><span class="live-dot"></span>Источник цены</span><b>BYBIT • LIVE</b></div><div class="timestamp">Последняя проверка: ${new Date().toLocaleString()} • без кэша</div>${crossHtml(cross)}<div class="metric"><span>Новости / макро</span><b>LIVE-сводка</b></div>
  <div class="note">Новостной слой учитывает тип события, силу, горизонт, область влияния и повторное подтверждение. Позитивный заголовок сам по себе не повышает рейтинг.</div>`;
 }
 
@@ -300,6 +325,10 @@ function bybitError(j){
  const msg=j?.retMsg ?? j?.ret_msg ?? j?.debug_msg ?? j?.status_msg ?? j?.message ?? '';
  return {code,msg:String(msg||'')};
 }
+const KEY_STORE='gridHunterBybitKeys_v16';
+function loadSavedKeys(){try{const x=JSON.parse(localStorage.getItem(KEY_STORE)||'null');if(x){if(x.api)$('apiKey').value=x.api;if(x.secret)$('apiSecret').value=x.secret;if(x.base)$('apiBase').value=x.base;return true}}catch(e){}return false}
+function saveKeys(){try{const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim(),base=$('apiBase').value;if(api&&secret)localStorage.setItem(KEY_STORE,JSON.stringify({api,secret,base,version:'1.6'}))}catch(e){}}
+function clearSavedKeys(){try{localStorage.removeItem(KEY_STORE)}catch(e){} $('apiKey').value='';$('apiSecret').value='';}
 async function bybitPrivate(path,params={},method='POST'){
  const api=$('apiKey').value.trim(), secret=$('apiSecret').value.trim(), base=$('apiBase').value;
  if(!api||!secret)throw Error('Введите API Key и API Secret');
@@ -369,50 +398,171 @@ function pickGridIdFromUrl(){
   return u.searchParams.get('grid_id')||u.searchParams.get('gridId')||'';
  }catch(e){return ''}
 }
+function diagEscape(x){return String(x??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+const DIAG_REGIONS=[
+ {name:'Global',base:'https://api.bybit.com'},
+ {name:'Netherlands',base:'https://api.bybit.nl'},
+ {name:'EEA',base:'https://api.bybit.eu'}
+];
+function diagRender(rows){
+ const icons={PASS:'✅',ERROR:'❌',WARN:'⚠️',WAIT:'⏳',SKIP:'⏭️'};
+ $('diagList').innerHTML=rows.map((x,i)=>`<div class="metric" style="white-space:normal"><span><b>${i+1}. ${diagEscape(x.title)}</b><br><span class="small">${diagEscape(x.detail||'')}</span></span><b>${icons[x.status]||'•'} ${x.status}</b></div>`).join('');
+}
+function diagError(e){return String(e?.message||e||'Неизвестная ошибка');}
+async function diagPublic(base,path='/v5/market/time'){
+ const started=Date.now();
+ let r;
+ try{r=await fetch(base+path,{cache:'no-store'});}catch(e){throw Error('Сеть/CORS: '+e.message)}
+ const text=await r.text(); let j; try{j=JSON.parse(text)}catch(e){throw Error(`HTTP ${r.status}: Bybit вернул не-JSON ответ`)}
+ if(!r.ok)throw Error(`HTTP ${r.status}: ${j.retMsg||'ошибка HTTP'}`);
+ if(j.retCode!==0)throw Error(`Bybit ${j.retCode}: ${j.retMsg||'ошибка API'}`);
+ return {j,ms:Date.now()-started};
+}
+function explainBybit(code,msg){
+ const c=String(code??'');
+ const m=String(msg||'');
+ const map={
+  '10002':'Время запроса истекло: проверь часы устройства/синхронизацию и recvWindow.',
+  '10003':'API Key не распознан или ключ относится к другому окружению/региону.',
+  '10004':'Неверная подпись: проверь API Secret, способ подписи и отсутствие лишних пробелов.',
+  '10005':'Недостаточно прав API: проверь Read-Only и Spot permissions.',
+  '10006':'Слишком много запросов: подожди несколько секунд и повтори.',
+  '10010':'IP-адрес не входит в разрешённый список API-ключа.',
+  '10007':'Ошибка авторизации API.',
+  '403':'HTTP 403: доступ запрещён сервером/региональной политикой или прокси.',
+  '404':'HTTP 404: неверный endpoint/регион.',
+  '429':'HTTP 429: превышен лимит запросов.'
+ };
+ return map[c]||m||('Код '+c);
+}
+async function diagPrivate(base,path,params={},method='GET'){
+ const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim();
+ if(!api||!secret)throw Error('API Key или API Secret не введён');
+ const ts=Date.now().toString(),recv='5000';
+ const query=Object.keys(params).sort().map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+ const payload=method==='GET'?query:JSON.stringify(params);
+ const sign=await hmac(secret,ts+api+recv+payload);
+ const opt={method,headers:{'Content-Type':'application/json','X-BAPI-API-KEY':api,'X-BAPI-SIGN':sign,'X-BAPI-SIGN-TYPE':'2','X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':recv}};
+ if(method!=='GET')opt.body=payload;
+ let r; try{r=await fetch(base+path+(method==='GET'&&query?'?'+query:''),opt)}catch(e){throw Error('Сеть/CORS: '+e.message)}
+ const text=await r.text(); let j; try{j=JSON.parse(text)}catch(e){throw Error(`HTTP ${r.status}: Bybit вернул не-JSON ответ`)}
+ const er=bybitError(j);
+ if(!r.ok||String(er.code??'0')!=='0')throw Error(`Код ${er.code??r.status}: ${explainBybit(er.code??r.status,er.msg)}`);
+ return j;
+}
+async function runDiagnostics(){
+ const rows=[]; const base=apiBase(); const api=$('apiKey').value.trim(),secret=$('apiSecret').value.trim();
+ const set=(title,status,detail)=>{rows.push({title,status,detail});diagRender(rows)};
+ set('Интернет / браузер','WAIT','Проверяю доступность сети и начинаю последовательную диагностику…');
+ if(navigator.onLine===false){rows.pop();set('Интернет / браузер','ERROR','Браузер сообщает offline. Проверь Wi‑Fi/мобильный интернет.');return}
+ rows.pop();set('Интернет / браузер','PASS','Браузер не находится в режиме offline.');
+ let publicResult=null;
+ try{publicResult=await diagPublic(base);set('API endpoint выбранного региона','PASS',`${base} отвечает. HTTP/API корректен; задержка ${publicResult.ms} мс.`)}
+ catch(e){set('API endpoint выбранного региона','ERROR',diagError(e)+' Выбранный регион не отвечает корректно.');}
+ let timeSkew=null;
+ try{
+  const r=publicResult?.j||await diagPublic(base).then(x=>x.j);
+  const st=Number(r.result?.timeSecond||0)*1000+Math.floor(Number(r.result?.timeNano||'0')/1e6)%1000;
+  if(st){timeSkew=st-Date.now();const abs=Math.abs(timeSkew);set('Серверное время','PASS',`Разница с часами устройства ≈ ${abs} мс${timeSkew>0?' (сервер впереди)':' (сервер позади)'}.`)}
+  else set('Серверное время','WARN','Bybit ответил, но серверное время не удалось разобрать.');
+ }catch(e){set('Серверное время','ERROR',diagError(e))}
+ try{const r=await diagPublic(base,'/v5/market/tickers?category=spot&symbol=BTCUSDT');const x=r.j.result?.list?.[0];set('Публичные рыночные данные','PASS',`BTCUSDT получен LIVE: ${x?.lastPrice||'—'} • 24ч ${x?.price24hPcnt||'—'} • задержка ${r.ms} мс.`)}catch(e){set('Публичные рыночные данные','ERROR',diagError(e))}
+ // region comparison is public only; private auth is tested on selected endpoint to avoid leaking secret to other regions unnecessarily
+ let regionOk=[];
+ for(const rg of DIAG_REGIONS){try{await diagPublic(rg.base);regionOk.push(rg.name)}catch(e){}}
+ set('Регион API','PASS',regionOk.length?`Публичный API отвечает: ${regionOk.join(', ')}. Авторизация ниже проверяется только на выбранном ${base}.`:'Ни один из трёх публичных endpoint не ответил.');
+ if(!api||!secret){set('API Key принят','ERROR','Не введены API Key и/или API Secret. Открой блок API выше.');
+  set('Подпись / Secret','SKIP','Невозможно проверить без обоих ключей.');set('Права ключа','SKIP','Невозможно проверить без успешной авторизации.');
+ }else{
+  let info=null;
+  try{info=await diagPrivate(base,'/v5/user/query-api',{},'GET');set('API Key принят','PASS','Bybit принял приватный запрос. Ключ действителен для выбранного endpoint.');}
+  catch(e){const m=diagError(e);set('API Key принят','ERROR',m+' Это приватная проверка: проблема может быть в ключе, Secret, подписи, времени, правах или региональном endpoint.');
+   if(/10004|подпись|Secret/i.test(m))set('Подпись / Secret','ERROR','Bybit отклонил подпись. Проверь Secret и точность ключей.');
+   else if(/10002|время/i.test(m))set('Подпись / Secret','WARN','Подпись не удалось проверить отдельно: сначала исправь проблему времени.');
+   else set('Подпись / Secret','WARN','Отдельно отличить Secret от Key нельзя, пока приватный запрос не проходит.');
+   set('Права ключа','SKIP','Bybit не вернул сведения о правах ключа.');
+  }
+  if(info){
+   const r=info.result||{}, ro=r.readOnly===1, spot=r.permissions?.Spot;
+   set('Подпись / Secret','PASS','Приватная подпись принята Bybit. API Secret корректен.');
+   if(ro && spot){set('Права ключа / Read-Only / Spot','PASS',`Read-Only: ДА • Spot permissions: ${JSON.stringify(spot)}`)}
+   else set('Права ключа / Read-Only / Spot','ERROR',`Read-Only: ${ro?'ДА':'НЕТ'} • Spot permissions: ${JSON.stringify(spot??null)}. Для этой программы нужен ключ только для чтения с доступом Spot.`);
+  }
+ }
+ const id=$('gridId').value.trim()||pickGridIdFromUrl();
+ if(!id){set('Доступ к Spot Grid','WARN','Endpoint Spot Grid нельзя полноценно проверить без конкретного Grid ID. Программа намеренно не угадывает ID.');set('Определение Grid ID','ERROR','Grid ID не найден ни в поле, ни в URL. Вставь числовой ID вручную.');set('Получение деталей Grid','SKIP','Сначала нужен Grid ID.');}
+ else{
+  set('Определение Grid ID','PASS',`Используется Grid ID ${id}.`);
+  try{const d=await diagPrivate(base,'/v5/grid/query-grid-detail',{gridId:id},'POST');set('Доступ к Spot Grid','PASS','Приватный Spot Grid endpoint отвечает.');set('Получение деталей Grid','PASS','Детали выбранного Grid ID получены без изменения бота.');
+   const raw=d.result||{};const sym=pickDeep(raw,['symbol','pair','symbolName']);if(sym)$('botPair').value=normalizePair(sym);syncBotFields();$('botStatus').value='API подключён • Spot Grid считан';
+  }catch(e){set('Доступ к Spot Grid','ERROR',diagError(e));set('Получение деталей Grid','ERROR','Grid ID найден, но детали получить не удалось. Проверь ID, принадлежность боту и доступ ключа.');}
+ }
+ $('diagTime').textContent='Последняя диагностика: '+new Date().toLocaleString();
+}
+
 async function readCurrentBot(){
  $('readBybit').disabled=true;
- $('botReadout').textContent='Проверяю Read-Only ключ через '+$('apiBase').value+'…';
+ const base=$('apiBase').value||'https://api.bybit.com';
+ const id=$('gridId').value.trim()||pickGridIdFromUrl();
+ const esc=x=>String(x??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+ const lines=[];
+ const show=()=>{$('botReadout').innerHTML=lines.join('<br>')};
+ $('botStatus').value='Диагностика API…';
+ lines.push(`<b>🔎 Диагностика Bybit</b><br><span class="small">Регион: <code>${esc(base)}</code></span>`); show();
  try{
-  const info=await bybitPrivate('/v5/user/query-api',{},'GET');
-  if(info?.retCode===10005)throw Error('Bybit 10005: доступ к API-ключу запрещён. Проверь регион API и права ключа.');
-  const keyInfo=info.result||{};
-  const ro=keyInfo.readOnly===1;
-  const spotPerm=Array.isArray(keyInfo.permissions?.Spot)?keyInfo.permissions.Spot:[];
-  const keyType=keyInfo.type===2?'стороннее приложение':'личный API-ключ';
-  $('botReadout').innerHTML=`<b>🔑 API-ключ принят.</b> ${ro?'Read-Only':'Read-Write'} • ${keyType} • Spot: ${spotPerm.length?spotPerm.join(', '):'нет'}<br><span class="small">Теперь проверяю именно Spot Grid по указанному Grid ID.</span>`;
-  if(!ro)throw Error('Ключ подключён, но он Read-Write. Для этого инструмента лучше использовать отдельный Read-Only ключ.');
+  let info;
+  try{
+   info=await bybitPrivate('/v5/user/query-api',{},'GET');
+   if(info?.retCode!==0) throw Error(`Bybit ${info?.retCode}: ${info?.retMsg||'ошибка query-api'}`);
+   const r=info.result||{};
+   lines.push(`<span class="ok">✅ Шаг 1 — API-ключ принят</span>`);
+   lines.push(`Read Only: <b>${r.readOnly===1?'ДА':'НЕТ'}</b>`);
+   lines.push(`Spot permissions: <code>${esc(JSON.stringify(r.permissions?.Spot??null))}</code>`);
+   if(r.type!==undefined) lines.push(`Тип ключа: <code>${esc(r.type)}</code>`);
+   if(r.ips!==undefined) lines.push(`IP-привязка: <code>${esc(JSON.stringify(r.ips))}</code>`);
+  }catch(e){
+   lines.push(`<span class="bad">❌ Шаг 1 — API-ключ: ${esc(e.message)}</span>`);
+   $('botStatus').value='Ошибка API-ключа'; show(); return;
+  }
 
-  let id=$('gridId').value.trim()||pickGridIdFromUrl();
   if(!id){
-   throw Error('Bybit V5 не предоставляет документированный список активных Spot Grid через отдельный list-endpoint. Для уже созданного бота нужен его Grid ID. Вставь его в поле «Grid ID».');
+   lines.push(`<span class="bad">❌ Шаг 2 — Grid ID не указан</span>`);
+   lines.push(`<span class="small">Вставь числовой Grid ID своего Spot Grid.</span>`);
+   $('botStatus').value='Нужен Grid ID'; show(); return;
   }
+  lines.push(`Grid ID: <code>${esc(id)}</code>`); show();
 
-  const detail=await readSpotGridDetail(id);
-  if(detail?.retCode===10005){
-    throw Error('Bybit 10005 на чтении Spot Grid. API-ключ распознан, но именно endpoint Spot Grid отклонил запрос. Проверь, что выбран Global для аккаунта РФ и что ключ создан как API Transaction → Read-Only → Spot Trading.');
+  try{
+   const detail=await readSpotGridDetail(id);
+   if(detail?.retCode!==0) throw Error(`Bybit ${detail?.retCode}: ${detail?.retMsg||'ошибка query-grid-detail'}`);
+   const raw=detail?.result ?? detail;
+   lines.push(`<span class="ok">✅ Шаг 2 — Spot Grid detail получен</span>`);
+   const sym=pickDeep(raw,['symbol','pair','symbolName']);
+   const invest=pickDeep(raw,['investment','totalInvestment','totalInvestmentAmount','quoteInvestment','totalInvest','totalInvestment']);
+   const grids=pickDeep(raw,['gridNum','gridNumber','numOfGrid','gridCount','cellNumber']);
+   const lo=pickDeep(raw,['lowerPrice','lowerLimit','minPrice','priceLower']);
+   const hi=pickDeep(raw,['upperPrice','upperLimit','maxPrice','priceUpper']);
+   const status=pickDeep(raw,['status','gridStatus','state']);
+   const profit=pickDeep(raw,['totalProfit','gridProfit','profit']);
+   const apr=pickDeep(raw,['apr','APR']);
+   if(sym)$('botPair').value=normalizePair(sym);
+   if(invest&&isFinite(+invest))$('botDeposit').value=invest;
+   if(grids&&isFinite(+grids))$('botGrids').value=grids;
+   if(lo)$('botMin').value=lo;
+   if(hi)$('botMax').value=hi;
+   syncBotFields();
+   $('botStatus').value='API подключён • Spot Grid считан';
+   lines.push(`Пара: <b>${esc(sym||'не определена')}</b>`);
+   lines.push(`Статус: <b>${esc(status||'не определён')}</b>${profit?` • P&L: <b>${esc(profit)}</b>`:''}${apr?` • APR: <b>${esc(apr)}</b>`:''}`);
+  }catch(e){
+   lines.push(`<span class="bad">❌ Шаг 2 — Spot Grid: ${esc(e.message)}</span>`);
+   lines.push(`<span class="small">Сам ключ уже прошёл проверку. Ошибка находится именно на запросе Grid ID.</span>`);
+   $('botStatus').value='Ключ OK, Grid недоступен';
   }
-  const raw=detail?.result ?? detail;
-  const sym=pickDeep(raw,['symbol','pair','symbolName']);
-  const invest=pickDeep(raw,['investment','totalInvestment','totalInvestmentAmount','quoteInvestment','totalInvest','totalInvestment']);
-  const grids=pickDeep(raw,['gridNum','gridNumber','numOfGrid','gridCount','cellNumber']);
-  const lo=pickDeep(raw,['lowerPrice','lowerLimit','minPrice','priceLower']);
-  const hi=pickDeep(raw,['upperPrice','upperLimit','maxPrice','priceUpper']);
-  const status=pickDeep(raw,['status','gridStatus','state']);
-  const profit=pickDeep(raw,['totalProfit','gridProfit','profit']);
-  const apr=pickDeep(raw,['apr','APR']);
-  if(sym)$('botPair').value=normalizePair(sym);
-  if(invest&&isFinite(+invest))$('botDeposit').value=invest;
-  if(grids&&isFinite(+grids))$('botGrids').value=grids;
-  if(lo)$('botMin').value=lo;
-  if(hi)$('botMax').value=hi;
-  syncBotFields();
-  $('botStatus').value='API подключён • Spot Grid считан';
-  $('botReadout').innerHTML=`<b>✅ Spot Grid считан.</b> ID: <code>${id}</code>${status?` • статус: <b>${status}</b>`:''}${profit?` • P&L: <b>${profit}</b>`:''}${apr?` • APR: <b>${apr}</b>`:''}.<br><span class="small">Использован только официальный Spot Grid detail endpoint <code>/v5/grid/query-grid-detail</code>.</span>`;
+  show();
  }catch(e){
-  $('botStatus').value='Ошибка подключения';
-  $('botReadout').innerHTML=`<b>❌ ${e.message}</b><br><span class="small">Если Bybit вернул ошибку API — пришли только этот экран, без API Key и Secret.</span>`;
- }
- finally{$('readBybit').disabled=false}
+  lines.push(`<span class="bad">❌ ${esc(e.message)}</span>`); $('botStatus').value='Ошибка'; show();
+ }finally{$('readBybit').disabled=false}
 }
 function syncBotFields(){ $('deposit').value=$('botDeposit').value||21; $('grids').value=$('botGrids').value||12; if($('botMin').value)$('min').value=$('botMin').value; if($('botMax').value)$('max').value=$('botMax').value; }
 $('gridId').value=pickGridIdFromUrl();
@@ -432,12 +582,14 @@ function connectReadOnly(){
   }
 }
 
-$('connect').onclick=connectReadOnly;$('readBybit').onclick=readCurrentBot;$('botDeposit').oninput=syncBotFields;$('botGrids').oninput=syncBotFields;$('botMin').oninput=syncBotFields;$('botMax').oninput=syncBotFields;
+$('apiKey').addEventListener('input',saveKeys);$('apiSecret').addEventListener('input',saveKeys);$('apiBase').addEventListener('change',saveKeys);
+$('connect').onclick=()=>{saveKeys();connectReadOnly()};$('readBybit').onclick=()=>{saveKeys();readCurrentBot()};
+window.addEventListener('DOMContentLoaded',()=>{if(loadSavedKeys()){$('apiBox').style.display='block';$('connect').textContent='🔓 Данные API (только чтение)';}});$('botDeposit').oninput=syncBotFields;$('botGrids').oninput=syncBotFields;$('botMin').oninput=syncBotFields;$('botMax').oninput=syncBotFields;
 
 async function scan(){
- $('scan').disabled=true;$('status').textContent='Сканирую Bybit: тикеры + 72 часовые свечи…';
+ $('scan').disabled=true;$('status').textContent='LIVE: Bybit без кэша → тикеры → свечи → межбиржевая проверка → новости…';
  try{
-  const r=await fetch(tickURL()); if(!r.ok)throw Error('Bybit HTTP '+r.status); const j=await r.json(); if(j.retCode!==0)throw Error(j.retMsg||'Bybit API error');
+  const r=await fetch(tickURL(),{cache:'no-store'}); if(!r.ok)throw Error('Bybit HTTP '+r.status); const j=await r.json(); if(j.retCode!==0)throw Error(j.retMsg||'Bybit API error');
   const arr=(j.result.list||[]).filter(t=>t.symbol.endsWith('USDT'));
   const pool=arr.filter(t=>+t.lastPrice>=+$('min').value&&+t.lastPrice<=+$('max').value)
                  .sort((a,b)=>(+b.turnover24h)-(+a.turnover24h)).slice(0,35);
@@ -456,14 +608,15 @@ async function scan(){
   const currentRaw=$('botPair').value.trim().toUpperCase().replace('/','');
   const current=out.find(x=>x.symbol===currentRaw);
   const best=top[0];
-  if(best){ let html=card(best.symbol.replace('USDT',''),best.a); if(current){ const diff=best.a.score-current.a.score; const decision=diff>=10?'🟢 Кандидат заметно лучше текущего бота':diff>=5?'🟡 Кандидат немного лучше — наблюдать':'🔵 Текущий бот не уступает'; html+=`<div class="card" style="margin:12px 0 0;padding:10px;background:#0c1425"><b>Сравнение с текущим ботом ${current.symbol.replace('USDT','')}</b><br>Текущий Grid: <b>${current.a.score.toFixed(0)}/100</b> • Кандидат: <b>${best.a.score.toFixed(0)}/100</b> • разница <b>${diff>=0?'+':''}${diff.toFixed(0)}</b><br><span class="small">${decision}. V0.8 не предлагает замену из-за небольшого преимущества.</span></div>`;} $('best').innerHTML=html; }
+  if(best){ let cross=await crossExchange(best.symbol); let html=card(best.symbol.replace('USDT',''),best.a,cross); if(current){ const diff=best.a.score-current.a.score; const decision=diff>=10?'🟢 Кандидат заметно лучше текущего бота':diff>=5?'🟡 Кандидат немного лучше — наблюдать':'🔵 Текущий бот не уступает'; html+=`<div class="card" style="margin:12px 0 0;padding:10px;background:#0c1425"><b>Сравнение с текущим ботом ${current.symbol.replace('USDT','')}</b><br>Текущий Grid: <b>${current.a.score.toFixed(0)}/100</b> • Кандидат: <b>${best.a.score.toFixed(0)}/100</b> • разница <b>${diff>=0?'+':''}${diff.toFixed(0)}</b><br><span class="small">${decision}. V0.8 не предлагает замену из-за небольшого преимущества.</span></div>`;} $('best').innerHTML=html; }
   $('rows').innerHTML=top.map((x,i)=>{const a=x.a;
    return `<tr class="${i===0?'rowtop':''}"><td class="rank">${i+1}</td><td><b>${x.symbol.replace('USDT','')}</b></td>
    <td>${num(a.p,7)}</td><td>${pct(a.ch)}</td><td>${num(a.g.lo,6)}–${num(a.g.hi,6)}</td><td><b>${a.score.toFixed(0)}</b> ${badge(a.label)}</td></tr>`;
   }).join('');
-  $('status').textContent=`Готово • проверено ${pool.length} ликвидных кандидатов • депозит ${$('deposit').value} USDT.`;
+  $('status').innerHTML=`Готово • <b>Bybit LIVE</b> • проверено ${pool.length} кандидатов • ${new Date().toLocaleString()} • депозит ${$('deposit').value} USDT.`;
  }catch(e){$('status').textContent='Ошибка: '+e.message}
  finally{$('scan').disabled=false}
 }
 $('scan').onclick=scan;
+$('diagRun').onclick=runDiagnostics;
 </script></body></html>
